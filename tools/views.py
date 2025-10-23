@@ -126,10 +126,12 @@ class BasicAnalysisListView(ListView):
         # Добавляем результаты транслита из сессии
         context['translit_results'] = self.request.session.get('translit_results')
         
+        
         # Очищаем результаты транслита если запрошено
         if self.request.GET.get('clear_translit'):
             if 'translit_results' in self.request.session:
                 del self.request.session['translit_results']
+        
         
         return context
 
@@ -422,6 +424,8 @@ def translit_form(request):
             return redirect('tools:analysis_list')
     
     return redirect('tools:analysis_list')
+
+
 
 
 

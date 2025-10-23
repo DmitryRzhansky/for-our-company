@@ -18,4 +18,6 @@ urlpatterns = [
     # Транслит
     path('translit/', views.TranslitListView.as_view(), name='translit_list'),
     path('translit/process/', views.translit_form, name='translit_form'),
+    
+    # Синонимы
 ]

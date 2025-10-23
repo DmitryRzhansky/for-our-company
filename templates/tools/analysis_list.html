@@ -109,6 +109,7 @@
             </div>
         </div>
         
+        
         <!-- Результаты транслита -->
         {% if translit_results %}
         <div class="card stats-card mt-4">
@@ -324,7 +325,6 @@
 {% endif %}
 {% endblock %}
 
-{% block extra_js %}
 <script>
 function copyAllTranslit() {
     const translitList = {{ translit_results.translit_list|safe }};
@@ -334,6 +334,7 @@ function copyAllTranslit() {
         showToast('Все результаты скопированы в буфер обмена!', 'success');
     });
 }
+
 
 function clearTranslitResults() {
     // Отправляем запрос для очистки сессии
@@ -346,6 +347,7 @@ function clearTranslitResults() {
         location.reload();
     });
 }
+
 
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
@@ -371,4 +373,3 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 </script>
-{% endblock %}
