@@ -72,23 +72,32 @@ def project_checklists(request, slug):
     total_items = 0
     completed_items = 0
     
+    # Добавляем вычисленные поля для каждого чек-листа
+    checklists_with_stats = []
     for checklist in checklists:
         if checklist.progress_percentage == 100:
             completed_checklists += 1
         total_items += checklist.total_items
         completed_items += checklist.completed_items
+        
+        # Добавляем вычисленные поля
+        checklist.remaining_items = checklist.total_items - checklist.completed_items
+        checklists_with_stats.append(checklist)
     
     overall_progress = 0
     if total_items > 0:
         overall_progress = round((completed_items / total_items) * 100)
     
+    remaining_items = total_items - completed_items
+    
     context = {
         'project': project,
-        'checklists': checklists,
+        'checklists': checklists_with_stats,
         'total_checklists': total_checklists,
         'completed_checklists': completed_checklists,
         'total_items': total_items,
         'completed_items': completed_items,
+        'remaining_items': remaining_items,
         'overall_progress': overall_progress,
     }
     

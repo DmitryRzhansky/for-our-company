@@ -33,16 +33,35 @@
 <!-- Прогресс -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card">
+        <div class="card stats-card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Прогресс выполнения</h5>
-                    <span class="badge bg-{% if checklist.progress_percentage == 100 %}success{% elif checklist.progress_percentage > 0 %}warning{% else %}secondary{% endif %} fs-6">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Прогресс выполнения
+                    </h5>
+                    <span class="badge {% if checklist.progress_percentage == 100 %}bg-success{% elif checklist.progress_percentage > 0 %}bg-warning{% else %}bg-secondary{% endif %} fs-6">
                         {{ checklist.completed_items }}/{{ checklist.total_items }} ({{ checklist.progress_percentage }}%)
                     </span>
                 </div>
-                <div class="progress" style="height: 10px;">
-                    <div class="progress-bar" role="progressbar" style="width: {{ checklist.progress_percentage }}%"></div>
+                <div class="progress mb-3" style="height: 15px; border-radius: 0;">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         style="width: {{ checklist.progress_percentage }}%; background: {% if checklist.progress_percentage == 100 %}var(--samurai-accent){% else %}var(--samurai-light){% endif %}; border-radius: 0;" 
+                         aria-valuenow="{{ checklist.progress_percentage }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <strong>{{ checklist.completed_items }}</strong> выполнено
+                    </div>
+                    <div class="col-md-4">
+                        <strong>{{ checklist.total_items|add:"-"|add:checklist.completed_items }}</strong> осталось
+                    </div>
+                    <div class="col-md-4">
+                        <strong>{{ checklist.progress_percentage }}%</strong> готово
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,12 +87,12 @@
 <!-- Элементы чек-листа -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card stats-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-list-ul"></i> Элементы чек-листа
                 </h5>
-                <button class="btn btn-sm btn-success" onclick="addNewItem()">
+                <button class="btn btn-sm btn-primary" onclick="addNewItem()">
                     <i class="bi bi-plus"></i> Добавить элемент
                 </button>
             </div>
@@ -82,19 +101,19 @@
                     <div class="accordion" id="checklistAccordion">
                         <!-- Выполненные элементы -->
                         {% if completed_items %}
-                            <div class="accordion-item">
+                            <div class="accordion-item samurai-accordion">
                                 <h2 class="accordion-header" id="completedHeader">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#completedItems">
+                                    <button class="accordion-button collapsed samurai-button" type="button" data-bs-toggle="collapse" data-bs-target="#completedItems">
                                         <i class="bi bi-check-circle-fill text-success me-2"></i>
                                         Выполненные ({{ completed_items|length }})
                                     </button>
                                 </h2>
                                 <div id="completedItems" class="accordion-collapse collapse" data-bs-parent="#checklistAccordion">
-                                    <div class="accordion-body">
+                                    <div class="accordion-body samurai-body">
                                         {% for item in completed_items %}
-                                            <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
-                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                <span class="flex-grow-1 text-decoration-line-through">{{ item.text }}</span>
+                                            <div class="d-flex align-items-center mb-2 p-3 samurai-item completed-item">
+                                                <i class="bi bi-check-circle-fill text-success me-3"></i>
+                                                <span class="flex-grow-1 text-decoration-line-through text-muted">{{ item.text }}</span>
                                                 <small class="text-muted">{{ item.completed_at|date:"d.m.Y H:i" }}</small>
                                             </div>
                                         {% endfor %}
@@ -105,21 +124,21 @@
 
                         <!-- Невыполненные элементы -->
                         {% if pending_items %}
-                            <div class="accordion-item">
+                            <div class="accordion-item samurai-accordion">
                                 <h2 class="accordion-header" id="pendingHeader">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pendingItems">
+                                    <button class="accordion-button samurai-button" type="button" data-bs-toggle="collapse" data-bs-target="#pendingItems">
                                         <i class="bi bi-circle text-warning me-2"></i>
                                         Невыполненные ({{ pending_items|length }})
                                     </button>
                                 </h2>
                                 <div id="pendingItems" class="accordion-collapse collapse show" data-bs-parent="#checklistAccordion">
-                                    <div class="accordion-body">
+                                    <div class="accordion-body samurai-body">
                                         {% for item in pending_items %}
-                                            <div class="d-flex align-items-center mb-2 p-2 border rounded">
-                                                <input type="checkbox" class="form-check-input me-2" 
+                                            <div class="d-flex align-items-center mb-2 p-3 samurai-item pending-item">
+                                                <input type="checkbox" class="form-check-input me-3 samurai-checkbox" 
                                                        onchange="toggleItem({{ item.id }})" 
                                                        id="item_{{ item.id }}">
-                                                <label for="item_{{ item.id }}" class="flex-grow-1 mb-0">{{ item.text }}</label>
+                                                <label for="item_{{ item.id }}" class="flex-grow-1 mb-0 samurai-label">{{ item.text }}</label>
                                                 <small class="text-muted">{{ item.created_at|date:"d.m.Y" }}</small>
                                             </div>
                                         {% endfor %}

@@ -79,10 +79,13 @@
                     </div>
                 </div>
                 <div class="row text-center">
-                    <div class="col-md-6">
-                        <strong>{{ completed_items }}</strong> из <strong>{{ total_items }}</strong> пунктов выполнено
+                    <div class="col-md-4">
+                        <strong>{{ completed_items }}</strong> выполнено
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <strong>{{ remaining_items }}</strong> осталось
+                    </div>
+                    <div class="col-md-4">
                         <strong>{{ completed_checklists }}</strong> из <strong>{{ total_checklists }}</strong> чек-листов завершено
                     </div>
                 </div>
@@ -139,6 +142,22 @@
                             </div>
                         </div>
                         
+                        <!-- Пункты чек-листа -->
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Пункты чек-листа:</h6>
+                            {% for item in checklist.items.all|slice:":5" %}
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi {% if item.is_completed %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %} me-2"></i>
+                                    <span class="{% if item.is_completed %}text-decoration-line-through text-muted{% endif %}">
+                                        {{ item.text|truncatechars:40 }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                            {% if checklist.items.count > 5 %}
+                                <small class="text-muted">... и еще {{ checklist.items.count|add:"-5" }} пунктов</small>
+                            {% endif %}
+                        </div>
+                        
                         <!-- Статистика чек-листа -->
                         <div class="row text-center mb-3">
                             <div class="col-6">
@@ -148,7 +167,7 @@
                                 </div>
                             </div>
                             <div class="col-6">
-                                <strong>{{ checklist.total_items|add:"-"|add:checklist.completed_items }}</strong>
+                                <strong>{{ checklist.remaining_items }}</strong>
                                 <br><small class="text-muted">Осталось</small>
                             </div>
                         </div>
