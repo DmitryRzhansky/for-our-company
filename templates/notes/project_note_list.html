@@ -37,7 +37,9 @@
                             <small class="text-muted">{{ note.updated_at|date:"d.m.Y" }}</small>
                         </div>
                         <div class="mb-2">
-                            <span class="badge bg-primary">{{ note.project.name }}</span>
+                            <a href="{% url 'projects:project_detail' note.project.slug %}" class="badge bg-primary text-decoration-none">
+                                {{ note.project.name }}
+                            </a>
                         </div>
                         <p class="card-text">{{ note.content|truncatechars:150 }}</p>
                         <div class="d-flex justify-content-between align-items-center">
