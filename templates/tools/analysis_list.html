@@ -85,20 +85,13 @@
                     <form method="POST" action="{% url 'tools:translit_form' %}">
                         {% csrf_token %}
                         <div class="row g-3">
-                            <div class="col-12">
+                            <div class="col-md-10">
                                 <label for="translit_text" class="form-label" style="color: white !important;">Исходный текст (по одному на строку)</label>
-                                <textarea class="form-control" id="translit_text" name="text" rows="4" placeholder="пластиковые окна&#10;установка окон&#10;окна пвх&#10;https://example.com/пластиковые-окна" style="color: white !important;"></textarea>
+                                <textarea class="form-control" id="translit_text" name="text" rows="4" placeholder="пластиковые окна&#10;установка окон&#10;окна пвх&#10;продажа бананов" style="color: white !important;"></textarea>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="translit_is_url" name="is_url">
-                                    <label class="form-check-label" for="translit_is_url" style="color: white !important;">
-                                        Это URL-адреса
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <button type="submit" class="btn btn-success w-100">
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-translate"></i> Транслитировать
                                 </button>
                             </div>
@@ -130,17 +123,13 @@
                     <div class="col-12">
                         <div class="mb-3">
                             <strong>Исходный текст:</strong>
-                            <div class="mt-1 p-2" style="background-color: #000; border: 1px solid #333; border-radius: 0; color: #ccc; font-family: monospace; white-space: pre-line;">
-                                {{ translit_results.original_text }}
-                            </div>
+                            <div class="mt-1 p-2" style="background-color: #000; border: 1px solid #333; border-radius: 0; color: #ccc; font-family: monospace; white-space: pre-line;">{{ translit_results.original_text }}</div>
                         </div>
                         
                         <div class="mb-3">
                             <strong>Транслит (ЧПУ):</strong>
-                            <div class="mt-1 p-2" style="background-color: #000; border: 1px solid #333; border-radius: 0; color: #fff; font-family: monospace; white-space: pre-line;">
-                                {% for translit in translit_results.translit_list %}
-{{ translit }}{% endfor %}
-                            </div>
+                            <div class="mt-1 p-2" style="background-color: #000; border: 1px solid #333; border-radius: 0; color: #fff; font-family: monospace; white-space: pre-line;">{% for translit in translit_results.translit_list %}{{ translit }}
+{% endfor %}</div>
                         </div>
                         
                         <div class="d-flex gap-2">
@@ -181,7 +170,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label for="competitor" class="form-label">Тип</label>
                         <select class="form-select" id="competitor" name="competitor">
                             <option value="">Все</option>
@@ -189,7 +178,8 @@
                             <option value="false" {% if request.GET.competitor == "false" %}selected{% endif %}>Клиенты</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="bi bi-search"></i>
                         </button>

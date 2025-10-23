@@ -389,7 +389,6 @@ def translit_form(request):
     """Форма транслитерации"""
     if request.method == 'POST':
         text = request.POST.get('text', '').strip()
-        is_url = request.POST.get('is_url') == 'on'
         
         if not text:
             messages.error(request, 'Введите текст для транслитерации')
@@ -397,18 +396,21 @@ def translit_form(request):
         
         try:
             parser = TranslitParser()
-            results = parser.process_multiple_lines(text, is_url)
+            # Всегда обрабатываем как обычный текст (не URL)
+            results = parser.process_multiple_lines(text, False)
             
             # Объединяем все результаты в один список
             all_translits = []
             for result in results:
-                all_translits.append(result['translit'])
+                # Убираем лишние пробелы
+                clean_translit = result['translit'].strip()
+                if clean_translit:  # Добавляем только непустые результаты
+                    all_translits.append(clean_translit)
             
             # Сохраняем результаты в сессии для отображения
             request.session['translit_results'] = {
-                'original_text': text,
+                'original_text': text.strip(),
                 'translit_list': all_translits,
-                'is_url': is_url,
                 'count': len(all_translits)
             }
             
