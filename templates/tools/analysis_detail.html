@@ -294,8 +294,8 @@
                                     <h6><i class="bi bi-house"></i> Внутренние ссылки ({{ analysis.detailed_links.internal|length }})</h6>
                                     <div style="max-height: 200px; overflow-y: auto;">
                                         {% for link in analysis.detailed_links.internal %}
-                                            <div class="mb-2 p-2" style="background-color: #f8f9fa; border-radius: 5px;">
-                                                <a href="{{ link.url }}" target="_blank" class="text-decoration-none">
+                                            <div class="mb-2 p-2 samurai-card" style="background-color: #000; border: 1px solid #333; border-radius: 0;">
+                                                <a href="{{ link.url }}" target="_blank" class="text-decoration-none text-white">
                                                     <strong>{{ link.text|default:"Без текста" }}</strong>
                                                 </a>
                                                 <br>
@@ -312,8 +312,8 @@
                                     <h6><i class="bi bi-globe"></i> Внешние ссылки ({{ analysis.detailed_links.external|length }})</h6>
                                     <div style="max-height: 200px; overflow-y: auto;">
                                         {% for link in analysis.detailed_links.external %}
-                                            <div class="mb-2 p-2" style="background-color: #f8f9fa; border-radius: 5px;">
-                                                <a href="{{ link.url }}" target="_blank" class="text-decoration-none">
+                                            <div class="mb-2 p-2 samurai-card" style="background-color: #000; border: 1px solid #333; border-radius: 0;">
+                                                <a href="{{ link.url }}" target="_blank" class="text-decoration-none text-white">
                                                     <strong>{{ link.text|default:"Без текста" }}</strong>
                                                 </a>
                                                 <br>
