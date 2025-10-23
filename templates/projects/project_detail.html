@@ -20,6 +20,9 @@
                 {% endif %}
             </div>
             <div>
+                <a href="{% url 'notes:project_detail_enhanced' project.slug %}" class="btn btn-outline-info me-2">
+                    <i class="bi bi-graph-up"></i> Детали проекта
+                </a>
                 <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge fs-6">
                     {{ project.get_status_display }}
                 </span>

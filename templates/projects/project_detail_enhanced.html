@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} - Детали проекта{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-folder"></i> {{ project.name }}
+            </h1>
+            <div>
+                <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-eye"></i> Обычный вид
+                </a>
+                <a href="/admin/projects/project/{{ project.id }}/change/" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика проекта -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-file-text display-4 mb-2 text-primary"></i>
+                <h4>{{ total_reports }}</h4>
+                <p class="mb-0">Отчетов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-clock display-4 mb-2 text-success"></i>
+                <h4>{{ total_time|default:"0:00" }}</h4>
+                <p class="mb-0">Времени потрачено</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-sticky display-4 mb-2 text-warning"></i>
+                <h4>{{ project_notes|length }}</h4>
+                <p class="mb-0">Заметок</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-check display-4 mb-2 text-info"></i>
+                <h4>{{ checklists|length }}</h4>
+                <p class="mb-0">Чек-листов</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Заметки проекта -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-sticky"></i> Заметки к проекту
+                </h5>
+                <a href="/admin/notes/projectnote/add/?project={{ project.id }}" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus"></i> Добавить
+                </a>
+            </div>
+            <div class="card-body">
+                {% if project_notes %}
+                    {% for note in project_notes %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="mb-1">
+                                    {% if note.is_important %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    {% endif %}
+                                    {{ note.title }}
+                                </h6>
+                                <small class="text-muted">{{ note.updated_at|date:"d.m.Y H:i" }}</small>
+                            </div>
+                            <p class="text-muted mb-0">{{ note.content|truncatechars:100 }}</p>
+                        </div>
+                    {% endfor %}
+                    <div class="text-center">
+                        <a href="/admin/notes/projectnote/?project__id__exact={{ project.id }}" class="btn btn-outline-primary btn-sm">
+                            Все заметки проекта
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Нет заметок</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Чек-листы -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-check"></i> Чек-листы
+                </h5>
+                <a href="/admin/notes/checklist/add/?project={{ project.id }}" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus"></i> Создать
+                </a>
+            </div>
+            <div class="card-body">
+                {% if checklists %}
+                    {% for checklist in checklists %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-1">{{ checklist.title }}</h6>
+                                <span class="badge bg-{% if checklist.progress_percentage == 100 %}success{% elif checklist.progress_percentage > 0 %}warning{% else %}secondary{% endif %}">
+                                    {{ checklist.completed_items }}/{{ checklist.total_items }}
+                                </span>
+                            </div>
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ checklist.progress_percentage }}%"></div>
+                            </div>
+                            {% if checklist.description %}
+                                <p class="text-muted small mb-0">{{ checklist.description|truncatechars:80 }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="text-center">
+                        <a href="/admin/notes/checklist/?project__id__exact={{ project.id }}" class="btn btn-outline-primary btn-sm">
+                            Все чек-листы
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Нет чек-листов</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние отчеты -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Последние отчеты
+                </h5>
+                <a href="{% url 'reports:report_list' %}?project={{ project.name }}" class="btn btn-sm btn-outline-primary">
+                    Все отчеты
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_reports %}
+                    {% for report in recent_reports %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-1">{{ report.work_description|truncatechars:60 }}</h6>
+                                <small class="text-muted">{{ report.date|date:"d.m.Y" }}</small>
+                            </div>
+                            <span class="badge time-badge">
+                                {{ report.time_spent_hours }}
+                            </span>
+                        </div>
+                        {% if not forloop.last %}<hr class="my-2">{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center mb-0">Нет отчетов</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Общие заметки -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-journal-text"></i> Общие заметки
+                </h5>
+                <a href="/admin/notes/note/add/" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus"></i> Добавить
+                </a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Здесь можно создавать заметки, не привязанные к конкретному проекту</p>
+                <a href="/admin/notes/note/" class="btn btn-outline-primary">
+                    <i class="bi bi-list"></i> Все заметки
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
