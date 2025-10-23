@@ -77,6 +77,7 @@ class BasicAnalysis(models.Model):
     total_links = models.IntegerField(default=0, verbose_name="Всего ссылок")
     extracted_text = models.TextField(blank=True, verbose_name="Извлеченный текст")
     keyword_analysis = models.JSONField(default=dict, verbose_name="Анализ ключевых слов")
+    detailed_links = models.JSONField(default=dict, verbose_name="Детальные ссылки")
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлен")

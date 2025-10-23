@@ -127,13 +127,31 @@ class SEOParser:
         meta_keywords = soup.find('meta', attrs={'name': 'keywords'})
         meta_data['meta_keywords'] = meta_keywords.get('content', '') if meta_keywords else ''
         
-        # Meta robots
-        meta_robots = soup.find('meta', attrs={'name': 'robots'})
+        # Meta robots - более надежный поиск
+        meta_robots = None
+        
+        # Ищем по разным вариантам name
+        for name_attr in ['robots', 'ROBOTS', 'Robots']:
+            meta_robots = soup.find('meta', attrs={'name': name_attr})
+            if meta_robots:
+                break
+        
+        # Если не нашли, ищем по content
         if not meta_robots:
-            # Ищем альтернативные варианты
-            meta_robots = soup.find('meta', attrs={'name': 'ROBOTS'})
+            for content_value in ['index, follow', 'noindex, nofollow', 'index, nofollow', 'noindex, follow']:
+                meta_robots = soup.find('meta', attrs={'content': content_value})
+                if meta_robots:
+                    break
+        
+        # Если все еще не нашли, ищем любые meta с robots в content
         if not meta_robots:
-            meta_robots = soup.find('meta', attrs={'name': 'robots', 'content': True})
+            all_meta = soup.find_all('meta')
+            for meta in all_meta:
+                content = meta.get('content', '')
+                if 'robots' in content.lower() or 'index' in content.lower() or 'follow' in content.lower():
+                    meta_robots = meta
+                    break
+        
         meta_data['meta_robots'] = meta_robots.get('content', '') if meta_robots else ''
         
         return meta_data
@@ -309,7 +327,7 @@ class SEOParser:
                     text = soup.get_text()
         
         data = {
-            'extracted_text': text[:5000] + '...' if len(text) > 5000 else text,  # Ограничиваем размер
+            'extracted_text': text,  # Убираем ограничение размера
         }
         
         # Подсчет слов
@@ -328,6 +346,10 @@ class SEOParser:
         # Анализ ссылок
         links_data = self._analyze_links(soup, url)
         data.update(links_data)
+        
+        # Сохраняем детальную информацию о ссылках
+        detailed_links = self._get_detailed_links(soup, url)
+        data['detailed_links'] = detailed_links
         
         # Анализ ключевых слов
         if keywords:
@@ -395,3 +417,46 @@ class SEOParser:
             }
         
         return analysis
+    
+    def _get_detailed_links(self, soup, base_url):
+        """Получает детальную информацию о ссылках"""
+        links = soup.find_all('a', href=True)
+        base_domain = urlparse(base_url).netloc
+        
+        internal_links = []
+        external_links = []
+        
+        for link in links:
+            href = link['href']
+            text = link.get_text().strip()
+            
+            # Пропускаем якорные ссылки и javascript
+            if href.startswith('#') or href.startswith('javascript:'):
+                continue
+            
+            # Преобразуем относительные ссылки в абсолютные
+            if href.startswith('/'):
+                href = urljoin(base_url, href)
+            elif not href.startswith('http'):
+                href = urljoin(base_url, href)
+            
+            try:
+                link_domain = urlparse(href).netloc
+                link_info = {
+                    'url': href,
+                    'text': text[:100] + '...' if len(text) > 100 else text,
+                    'title': link.get('title', ''),
+                    'domain': link_domain
+                }
+                
+                if link_domain == base_domain:
+                    internal_links.append(link_info)
+                else:
+                    external_links.append(link_info)
+            except:
+                continue
+        
+        return {
+            'internal': internal_links,
+            'external': external_links
+        }

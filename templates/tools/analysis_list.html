@@ -59,7 +59,7 @@
                             <div class="col-12">
                                 <label for="keywords" class="form-label">Ключевые слова (по одному на строку)</label>
                                 <textarea class="form-control" id="keywords" name="keywords" rows="3" placeholder="пластиковые окна&#10;установка окон&#10;окна пвх"></textarea>
-                                <small class="text-white">
+                                <small style="color: white !important;">
                                     <i class="bi bi-info-circle"></i> 
                                     Анализирует: SEO-теги, заголовки, метрики, плотность ключевых слов, ссылки, извлеченный текст
                                 </small>
@@ -129,9 +129,6 @@
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h6 class="card-title mb-0">{{ analysis.page_title|truncatechars:50|default:"Без title" }}</h6>
-                            <span class="badge bg-primary">
-                                <i class="bi bi-check-circle"></i> Анализ
-                            </span>
                         </div>
                         
                         <p class="text-muted small mb-2">
