@@ -129,6 +129,11 @@ class SEOParser:
         
         # Meta robots
         meta_robots = soup.find('meta', attrs={'name': 'robots'})
+        if not meta_robots:
+            # Ищем альтернативные варианты
+            meta_robots = soup.find('meta', attrs={'name': 'ROBOTS'})
+        if not meta_robots:
+            meta_robots = soup.find('meta', attrs={'name': 'robots', 'content': True})
         meta_data['meta_robots'] = meta_robots.get('content', '') if meta_robots else ''
         
         return meta_data
@@ -278,8 +283,31 @@ class SEOParser:
         """Анализирует простые метрики"""
         import re
         
-        # Извлекаем весь текст
-        text = soup.get_text()
+        # Удаляем header, footer, nav и другие служебные элементы
+        for element in soup(['header', 'footer', 'nav', 'aside', 'script', 'style', 'noscript']):
+            element.decompose()
+        
+        # Удаляем элементы с классами header/footer
+        for element in soup.find_all(class_=lambda x: x and any(word in x.lower() for word in ['header', 'footer', 'nav', 'menu', 'sidebar'])):
+            element.decompose()
+        
+        # Извлекаем только основной контент
+        main_content = soup.find('main')
+        if main_content:
+            text = main_content.get_text()
+        else:
+            # Если нет main, ищем article или div с контентом
+            article = soup.find('article')
+            if article:
+                text = article.get_text()
+            else:
+                # В крайнем случае берем body, но без служебных элементов
+                body = soup.find('body')
+                if body:
+                    text = body.get_text()
+                else:
+                    text = soup.get_text()
+        
         data = {
             'extracted_text': text[:5000] + '...' if len(text) > 5000 else text,  # Ограничиваем размер
         }

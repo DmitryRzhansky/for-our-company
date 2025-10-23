@@ -231,7 +231,9 @@ def export_to_excel(request):
         'Meta Robots', 'Canonical', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
         'OG Title', 'OG Description', 'OG Image', 'OG Type',
         'Twitter Title', 'Twitter Description', 'Twitter Image', 'Twitter Card',
-        'Время ответа', 'Размер страницы', 'HTTP статус', 'SEO проблемы', 'Дата анализа'
+        'Время ответа', 'Размер страницы', 'HTTP статус', 'Количество слов',
+        'Длина title', 'Длина description', 'Внутренние ссылки', 'Внешние ссылки',
+        'Всего ссылок', 'Извлеченный текст', 'Дата анализа'
     ]
     
     # Стили
@@ -271,8 +273,14 @@ def export_to_excel(request):
         ws.cell(row=row, column=22, value=analysis.response_time)
         ws.cell(row=row, column=23, value=analysis.page_size)
         ws.cell(row=row, column=24, value=analysis.status_code)
-        ws.cell(row=row, column=25, value=f"{len(analysis.seo_issues)} проблем")
-        ws.cell(row=row, column=26, value=analysis.created_at.strftime('%d.%m.%Y %H:%M'))
+        ws.cell(row=row, column=25, value=analysis.word_count)
+        ws.cell(row=row, column=26, value=analysis.title_length)
+        ws.cell(row=row, column=27, value=analysis.description_length)
+        ws.cell(row=row, column=28, value=analysis.internal_links)
+        ws.cell(row=row, column=29, value=analysis.external_links)
+        ws.cell(row=row, column=30, value=analysis.total_links)
+        ws.cell(row=row, column=31, value=analysis.extracted_text[:1000] + '...' if len(analysis.extracted_text) > 1000 else analysis.extracted_text)
+        ws.cell(row=row, column=32, value=analysis.created_at.strftime('%d.%m.%Y %H:%M'))
     
     # Автоширина колонок
     for column in ws.columns:

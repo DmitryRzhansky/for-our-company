@@ -59,7 +59,7 @@
                             <div class="col-12">
                                 <label for="keywords" class="form-label">Ключевые слова (по одному на строку)</label>
                                 <textarea class="form-control" id="keywords" name="keywords" rows="3" placeholder="пластиковые окна&#10;установка окон&#10;окна пвх"></textarea>
-                                <small class="text-muted">
+                                <small class="text-white">
                                     <i class="bi bi-info-circle"></i> 
                                     Анализирует: SEO-теги, заголовки, метрики, плотность ключевых слов, ссылки, извлеченный текст
                                 </small>
@@ -107,8 +107,6 @@
                         <select class="form-select" id="sort" name="sort">
                             <option value="-created_at" {% if request.GET.sort == "-created_at" %}selected{% endif %}>Новые сначала</option>
                             <option value="created_at" {% if request.GET.sort == "created_at" %}selected{% endif %}>Старые сначала</option>
-                            <option value="page_title" {% if request.GET.sort == "page_title" %}selected{% endif %}>По title А-Я</option>
-                            <option value="-response_time" {% if request.GET.sort == "-response_time" %}selected{% endif %}>По времени ответа</option>
                         </select>
                     </div>
                     <div class="col-md-1">
