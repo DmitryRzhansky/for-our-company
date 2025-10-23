@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} - Чек-листы - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-list-check"></i> Чек-листы проекта: {{ project.name }}
+            </h1>
+            <div>
+                <a href="{% url 'notes:project_detail_enhanced' project.slug %}" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-arrow-left"></i> Назад к проекту
+                </a>
+                <a href="/admin/notes/checklist/add/?project={{ project.id }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Новый чек-лист
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Общая статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-ul display-4 mb-2"></i>
+                <h3>{{ total_checklists }}</h3>
+                <p class="mb-0">Всего чек-листов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle display-4 mb-2"></i>
+                <h3>{{ completed_checklists }}</h3>
+                <p class="mb-0">Завершено</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-task display-4 mb-2"></i>
+                <h3>{{ total_items }}</h3>
+                <p class="mb-0">Всего пунктов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-check2-all display-4 mb-2"></i>
+                <h3>{{ completed_items }}</h3>
+                <p class="mb-0">Выполнено</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Общий прогресс -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-graph-up"></i> Общий прогресс проекта
+                </h5>
+                <div class="progress mb-3" style="height: 25px;">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ overall_progress }}%; background: var(--samurai-accent);" 
+                         aria-valuenow="{{ overall_progress }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ overall_progress }}%
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <strong>{{ completed_items }}</strong> из <strong>{{ total_items }}</strong> пунктов выполнено
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ completed_checklists }}</strong> из <strong>{{ total_checklists }}</strong> чек-листов завершено
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список чек-листов -->
+{% if checklists %}
+    <div class="row">
+        {% for checklist in checklists %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title">
+                                <a href="{% url 'notes:checklist_detail' checklist.id %}" class="text-decoration-none">
+                                    {{ checklist.title }}
+                                </a>
+                            </h5>
+                            <span class="badge {% if checklist.progress_percentage == 100 %}bg-success{% elif checklist.progress_percentage > 0 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {% if checklist.progress_percentage == 100 %}
+                                    <i class="bi bi-check-circle"></i> Завершен
+                                {% elif checklist.progress_percentage > 0 %}
+                                    <i class="bi bi-clock"></i> В работе
+                                {% else %}
+                                    <i class="bi bi-circle"></i> Не начат
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if checklist.description %}
+                            <p class="card-text text-muted mb-3">{{ checklist.description|truncatechars:100 }}</p>
+                        {% endif %}
+                        
+                        <!-- Прогресс-бар чек-листа -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Прогресс</small>
+                                <small class="text-muted">{{ checklist.completed_items }}/{{ checklist.total_items }}</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" 
+                                     role="progressbar" 
+                                     style="width: {{ checklist.progress_percentage }}%; background: {% if checklist.progress_percentage == 100 %}var(--samurai-accent){% else %}var(--samurai-light){% endif %};" 
+                                     aria-valuenow="{{ checklist.progress_percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="text-center mt-1">
+                                <small class="text-muted">{{ checklist.progress_percentage }}%</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Статистика чек-листа -->
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <strong>{{ checklist.completed_items }}</strong>
+                                    <br><small class="text-muted">Выполнено</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <strong>{{ checklist.total_items|add:"-"|add:checklist.completed_items }}</strong>
+                                <br><small class="text-muted">Осталось</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ checklist.created_at|date:"d.m.Y" }}
+                            </small>
+                            <a href="{% url 'notes:checklist_detail' checklist.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Открыть
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-list-check display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Нет чек-листов</h3>
+        <p class="text-muted">Создайте первый чек-лист для этого проекта</p>
+        <a href="/admin/notes/checklist/add/?project={{ project.id }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать чек-лист
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+

@@ -108,9 +108,14 @@
                 <h5 class="mb-0">
                     <i class="bi bi-list-check"></i> Чек-листы
                 </h5>
-                <a href="/admin/notes/checklist/add/?project={{ project.id }}" class="btn btn-sm btn-success">
-                    <i class="bi bi-plus"></i> Создать
-                </a>
+                <div>
+                    <a href="{% url 'notes:project_checklists' project.slug %}" class="btn btn-sm btn-outline-primary me-2">
+                        <i class="bi bi-eye"></i> Все чек-листы
+                    </a>
+                    <a href="/admin/notes/checklist/add/?project={{ project.id }}" class="btn btn-sm btn-success">
+                        <i class="bi bi-plus"></i> Создать
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 {% if checklists %}

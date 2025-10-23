@@ -61,6 +61,40 @@ def project_detail_enhanced(request, slug):
     return render(request, 'projects/project_detail_enhanced.html', context)
 
 
+def project_checklists(request, slug):
+    """Страница всех чек-листов проекта"""
+    project = get_object_or_404(Project, slug=slug)
+    checklists = project.checklists.all().order_by('-created_at')
+    
+    # Статистика по чек-листам
+    total_checklists = checklists.count()
+    completed_checklists = 0
+    total_items = 0
+    completed_items = 0
+    
+    for checklist in checklists:
+        if checklist.progress_percentage == 100:
+            completed_checklists += 1
+        total_items += checklist.total_items
+        completed_items += checklist.completed_items
+    
+    overall_progress = 0
+    if total_items > 0:
+        overall_progress = round((completed_items / total_items) * 100)
+    
+    context = {
+        'project': project,
+        'checklists': checklists,
+        'total_checklists': total_checklists,
+        'completed_checklists': completed_checklists,
+        'total_items': total_items,
+        'completed_items': completed_items,
+        'overall_progress': overall_progress,
+    }
+    
+    return render(request, 'notes/project_checklists.html', context)
+
+
 def checklist_detail(request, checklist_id):
     """Детальная страница чек-листа"""
     checklist = get_object_or_404(Checklist, id=checklist_id)
