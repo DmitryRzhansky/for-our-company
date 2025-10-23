@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Ресурсы - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-collection"></i> Библиотека ресурсов
+            </h1>
+            <div>
+                <a href="/admin/resources/resource/add/" class="btn btn-primary me-2">
+                    <i class="bi bi-plus-circle"></i> Добавить ресурс
+                </a>
+                <a href="{% url 'resources:category_list' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-folder"></i> Категории
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры и поиск -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card stats-card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Поиск</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="Поиск по названию, описанию, тегам...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Все категории</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">Тип</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">Все типы</option>
+                            {% for type_code, type_name in resource_types %}
+                                <option value="{{ type_code }}" {% if request.GET.type == type_code %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="sort" class="form-label">Сортировка</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="-created_at" {% if request.GET.sort == "-created_at" %}selected{% endif %}>Новые сначала</option>
+                            <option value="created_at" {% if request.GET.sort == "created_at" %}selected{% endif %}>Старые сначала</option>
+                            <option value="title" {% if request.GET.sort == "title" %}selected{% endif %}>По названию А-Я</option>
+                            <option value="-title" {% if request.GET.sort == "-title" %}selected{% endif %}>По названию Я-А</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="tag" class="form-label">Тег</label>
+                        <select class="form-select" id="tag" name="tag">
+                            <option value="">Все теги</option>
+                            {% for tag in all_tags %}
+                                <option value="{{ tag }}" {% if request.GET.tag == tag %}selected{% endif %}>
+                                    #{{ tag }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Найти
+                        </button>
+                        <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Сбросить
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Рекомендуемые ресурсы -->
+{% if featured_resources %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card stats-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-star-fill"></i> Рекомендуемые ресурсы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for resource in featured_resources %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 samurai-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start mb-2">
+                                            <i class="bi bi-{{ resource.category.icon }} me-2" style="color: {{ resource.category.color }};"></i>
+                                            <h6 class="card-title mb-0">{{ resource.title }}</h6>
+                                        </div>
+                                        <p class="card-text text-muted small">{{ resource.description|truncatechars:80 }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-secondary">{{ resource.get_resource_type_display }}</span>
+                                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Открыть
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Список ресурсов -->
+<div class="row">
+    {% for resource in resources %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 samurai-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-{{ resource.category.icon }} me-2" style="color: {{ resource.category.color }};"></i>
+                            <h6 class="card-title mb-0">{{ resource.title }}</h6>
+                        </div>
+                        {% if resource.is_featured %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text text-muted small mb-3">{{ resource.description|truncatechars:100 }}</p>
+                    
+                    <div class="mb-3">
+                        <span class="badge bg-secondary me-1">{{ resource.get_resource_type_display }}</span>
+                        <span class="badge" style="background-color: {{ resource.category.color }}; color: white;">
+                            {{ resource.category.name }}
+                        </span>
+                        {% if resource.category.description %}
+                            <small class="text-muted d-block mt-1">{{ resource.category.description|truncatechars:60 }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    {% if resource.tags_list %}
+                        <div class="mb-3">
+                            <div id="tags-{{ resource.pk }}-short">
+                                {% for tag in resource.tags_list|slice:":3" %}
+                                    <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                                {% endfor %}
+                                {% if resource.tags_list|length > 3 %}
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleTags({{ resource.pk }})">
+                                        +{{ resource.tags_list|length|add:"-3" }} еще
+                                    </button>
+                                {% endif %}
+                            </div>
+                            <div id="tags-{{ resource.pk }}-full" style="display: none;">
+                                {% for tag in resource.tags_list %}
+                                    <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                                {% endfor %}
+                                {% if resource.tags_list|length > 3 %}
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleTags({{ resource.pk }})">
+                                        Свернуть
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ resource.created_at|date:"d.m.Y" }}
+                        </small>
+                        <div>
+                            {% if resource.url %}
+                                <a href="{{ resource.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-collection display-1 text-muted"></i>
+                <h3 class="text-muted mt-3">Ресурсы не найдены</h3>
+                <p class="text-muted">Попробуйте изменить параметры поиска или добавьте первый ресурс</p>
+                <a href="/admin/resources/resource/add/" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить ресурс
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Пагинация -->
+{% if is_paginated %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Навигация по страницам">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+function toggleTags(resourceId) {
+    const shortDiv = document.getElementById('tags-' + resourceId + '-short');
+    const fullDiv = document.getElementById('tags-' + resourceId + '-full');
+    
+    if (shortDiv.style.display === 'none') {
+        shortDiv.style.display = 'block';
+        fullDiv.style.display = 'none';
+    } else {
+        shortDiv.style.display = 'none';
+        fullDiv.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ resource.title }} - Ресурс - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="bi bi-{{ resource.category.icon }}" style="color: {{ resource.category.color }};"></i>
+                    {{ resource.title }}
+                </h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-folder"></i> 
+                    <a href="{% url 'resources:category_detail' resource.category.pk %}" class="text-decoration-none">
+                        {{ resource.category.name }}
+                    </a>
+                    • {{ resource.get_resource_type_display }}
+                </p>
+                {% if resource.category.description %}
+                    <p class="text-muted small mt-1">
+                        <i class="bi bi-info-circle"></i> {{ resource.category.description }}
+                    </p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'resources:resource_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Назад к списку
+                </a>
+                <a href="/admin/resources/resource/{{ resource.pk }}/change/" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card stats-card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-info-circle"></i> Описание
+                </h5>
+                {% if resource.description %}
+                    <p class="card-text">{{ resource.description|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">Описание не указано</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if resource.tags_list %}
+            <div class="card stats-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-tags"></i> Теги
+                    </h5>
+                    <div>
+                        {% for tag in resource.tags_list %}
+                            <span class="badge bg-light text-dark me-2 mb-2">#{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stats-card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-link-45deg"></i> Ссылки и файлы
+                </h5>
+                
+                {% if resource.url %}
+                    <div class="mb-3">
+                        <a href="{{ resource.url }}" target="_blank" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-up-right"></i> Открыть ссылку
+                        </a>
+                    </div>
+                {% endif %}
+                
+                {% if resource.file %}
+                    <div class="mb-3">
+                        <a href="{{ resource.file.url }}" target="_blank" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-download"></i> Скачать файл
+                        </a>
+                        <small class="text-muted d-block mt-1">{{ resource.file.name|slice:"13:" }}</small>
+                    </div>
+                {% endif %}
+                
+                {% if resource.image %}
+                    <div class="mb-3">
+                        <img src="{{ resource.image.url }}" class="img-fluid rounded" alt="{{ resource.title }}">
+                    </div>
+                {% endif %}
+                
+                {% if not resource.has_content %}
+                    <p class="text-muted text-center">Нет доступного контента</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card stats-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-info"></i> Информация
+                </h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <strong>Тип:</strong> {{ resource.get_resource_type_display }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Категория:</strong> 
+                        <a href="{% url 'resources:category_detail' resource.category.pk %}" class="text-decoration-none">
+                            {{ resource.category.name }}
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Создано:</strong> {{ resource.created_at|date:"d.m.Y H:i" }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Обновлено:</strong> {{ resource.updated_at|date:"d.m.Y H:i" }}
+                    </li>
+                    {% if resource.is_featured %}
+                        <li class="mb-2">
+                            <span class="badge bg-warning">
+                                <i class="bi bi-star-fill"></i> Рекомендуемый
+                            </span>
+                        </li>
+                    {% endif %}
+                    {% if not resource.is_public %}
+                        <li class="mb-2">
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-lock"></i> Приватный
+                            </span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

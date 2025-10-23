@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - Категория - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="bi bi-{{ category.icon }}" style="color: {{ category.color }};"></i>
+                    {{ category.name }}
+                </h1>
+                {% if category.description %}
+                    <p class="text-muted mb-0">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'resources:category_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Все категории
+                </a>
+                <a href="/admin/resources/resource/add/?category={{ category.pk }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить ресурс
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card stats-card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Поиск</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="Поиск по названию, описанию, тегам...">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="type" class="form-label">Тип</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">Все типы</option>
+                            {% for type_code, type_name in resource_types %}
+                                <option value="{{ type_code }}" {% if request.GET.type == type_code %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="sort" class="form-label">Сортировка</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="-created_at" {% if request.GET.sort == "-created_at" %}selected{% endif %}>Новые сначала</option>
+                            <option value="created_at" {% if request.GET.sort == "created_at" %}selected{% endif %}>Старые сначала</option>
+                            <option value="title" {% if request.GET.sort == "title" %}selected{% endif %}>По названию А-Я</option>
+                            <option value="-title" {% if request.GET.sort == "-title" %}selected{% endif %}>По названию Я-А</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Найти
+                        </button>
+                        <a href="{% url 'resources:category_detail' category.pk %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Сбросить
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список ресурсов -->
+<div class="row">
+    {% for resource in resources %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 samurai-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">{{ resource.title }}</h6>
+                        {% if resource.is_featured %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text text-muted small mb-3">{{ resource.description|truncatechars:100 }}</p>
+                    
+                    <div class="mb-3">
+                        <span class="badge bg-secondary me-1">{{ resource.get_resource_type_display }}</span>
+                    </div>
+                    
+                    {% if resource.tags_list %}
+                        <div class="mb-3">
+                            {% for tag in resource.tags_list|slice:":3" %}
+                                <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                            {% endfor %}
+                            {% if resource.tags_list|length > 3 %}
+                                <span class="text-muted small">+{{ resource.tags_list|length|add:"-3" }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ resource.created_at|date:"d.m.Y" }}
+                        </small>
+                        <div>
+                            {% if resource.url %}
+                                <a href="{{ resource.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'resources:resource_detail' resource.pk %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-collection display-1 text-muted"></i>
+                <h3 class="text-muted mt-3">Ресурсы не найдены</h3>
+                <p class="text-muted">В этой категории пока нет ресурсов</p>
+                <a href="/admin/resources/resource/add/?category={{ category.pk }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить ресурс
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

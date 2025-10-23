@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'reports',
     'dashboard',
     'notes',
+    'resources',
 ]
 
 MIDDLEWARE = [
