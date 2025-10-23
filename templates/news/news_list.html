@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Новости - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-newspaper"></i> SEO Новости
+            </h1>
+            <div>
+                <a href="/admin/news/news/add/" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить новость
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-newspaper display-4 mb-2"></i>
+                <h3>{{ stats.total_news }}</h3>
+                <p class="mb-0">Всего новостей</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-clock display-4 mb-2"></i>
+                <h3>{{ stats.recent_news }}</h3>
+                <p class="mb-0">За неделю</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-star display-4 mb-2"></i>
+                <h3>{{ stats.featured_news }}</h3>
+                <p class="mb-0">Рекомендуемые</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры и поиск -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card stats-card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Поиск</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="Поиск по заголовку, описанию...">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="source" class="form-label">Источник</label>
+                        <select class="form-select" id="source" name="source">
+                            <option value="">Все источники</option>
+                            {% for source in sources %}
+                                <option value="{{ source.id }}" {% if request.GET.source == source.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ source.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="sort" class="form-label">Сортировка</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="-published_date" {% if request.GET.sort == "-published_date" %}selected{% endif %}>Новые сначала</option>
+                            <option value="published_date" {% if request.GET.sort == "published_date" %}selected{% endif %}>Старые сначала</option>
+                            <option value="title" {% if request.GET.sort == "title" %}selected{% endif %}>По названию А-Я</option>
+                            <option value="-title" {% if request.GET.sort == "-title" %}selected{% endif %}>По названию Я-А</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Фильтры</label>
+                        <div class="d-flex flex-column">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="featured" name="featured" value="true" 
+                                       {% if request.GET.featured == "true" %}checked{% endif %}>
+                                <label class="form-check-label" for="featured">
+                                    Рекомендуемые
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="recent" name="recent" value="true" 
+                                       {% if request.GET.recent == "true" %}checked{% endif %}>
+                                <label class="form-check-label" for="recent">
+                                    За неделю
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex flex-column">
+                            <button type="submit" class="btn btn-primary mb-2">
+                                <i class="bi bi-search"></i> Найти
+                            </button>
+                            <a href="{% url 'news:news_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Сбросить
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Рекомендуемые новости -->
+{% if featured_news %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card stats-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-star-fill"></i> Рекомендуемые новости
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for news in featured_news %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 samurai-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">{{ news.title|truncatechars:60 }}</h6>
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{ news.source.name }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> {{ news.published_date|date:"d.m.Y" }}
+                                            </small>
+                                            <a href="{{ news.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-box-arrow-up-right"></i> Читать
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Список новостей -->
+<div class="row">
+    {% for news in news_list %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 samurai-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">{{ news.title|truncatechars:80 }}</h6>
+                        {% if news.is_featured %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-muted small mb-3">{{ news.source.name }}</p>
+                    
+                    {% if news.description %}
+                        <p class="card-text text-muted small mb-3">{{ news.description|truncatechars:100 }}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ news.published_date|date:"d.m.Y H:i" }}
+                        </small>
+                        <a href="{{ news.url }}" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="bi bi-box-arrow-up-right"></i> Читать
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-newspaper display-1 text-muted"></i>
+                <h3 class="text-muted mt-3">Новости не найдены</h3>
+                <p class="text-muted">Попробуйте изменить параметры поиска</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Пагинация -->
+{% if is_paginated %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Навигация по страницам">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.featured %}&featured={{ request.GET.featured }}{% endif %}{% if request.GET.recent %}&recent={{ request.GET.recent }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.featured %}&featured={{ request.GET.featured }}{% endif %}{% if request.GET.recent %}&recent={{ request.GET.recent }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.featured %}&featured={{ request.GET.featured }}{% endif %}{% if request.GET.recent %}&recent={{ request.GET.recent }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.featured %}&featured={{ request.GET.featured }}{% endif %}{% if request.GET.recent %}&recent={{ request.GET.recent }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
