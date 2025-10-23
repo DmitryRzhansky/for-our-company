@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ website.name|default:website.url }} - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="bi bi-globe"></i> {{ website.name|default:website.url }}
+                </h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-link-45deg"></i> 
+                    <a href="{{ website.url }}" target="_blank" class="text-decoration-none">
+                        {{ website.url }}
+                    </a>
+                </p>
+                {% if website.is_competitor %}
+                    <p class="text-muted small">
+                        <span class="badge bg-warning">Конкурент</span>
+                    </p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'tools:website_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Все сайты
+                </a>
+                <a href="/admin/tools/website/{{ website.pk }}/change/" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-bar-chart-line display-4 mb-2"></i>
+                <h3>{{ analyses|length }}</h3>
+                <p class="mb-0">Анализов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar display-4 mb-2"></i>
+                <h3>{{ website.created_at|date:"d.m.Y" }}</h3>
+                <p class="mb-0">Добавлен</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-{% if website.is_competitor %}people{% else %}building{% endif %} display-4 mb-2"></i>
+                <h3>{% if website.is_competitor %}Конкурент{% else %}Клиент{% endif %}</h3>
+                <p class="mb-0">Тип</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-clock display-4 mb-2"></i>
+                <h3>{{ website.updated_at|date:"H:i" }}</h3>
+                <p class="mb-0">Обновлен</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Анализы сайта -->
+<div class="row">
+    <div class="col-12">
+        <div class="card stats-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart-line"></i> Анализы сайта ({{ analyses|length }})
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if analyses %}
+                    <div class="row">
+                        {% for analysis in analyses %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 samurai-card">
+                                    <div class="card-body d-flex flex-column">
+                                        <h6 class="card-title mb-2">
+                                            {{ analysis.page_title|truncatechars:40|default:"Без title" }}
+                                        </h6>
+                                        
+                                        <p class="text-muted small mb-2">
+                                            <i class="bi bi-link-45deg"></i> 
+                                            <a href="{{ analysis.page_url }}" target="_blank" class="text-decoration-none">
+                                                {{ analysis.page_url|truncatechars:30 }}
+                                            </a>
+                                        </p>
+                                        
+                                        <div class="row text-center mb-2">
+                                            <div class="col-4">
+                                                <small class="text-muted">Статус</small><br>
+                                                <span class="badge bg-{% if analysis.status_code == 200 %}success{% else %}danger{% endif %}">
+                                                    {{ analysis.status_code }}
+                                                </span>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted">Время</small><br>
+                                                <small>{{ analysis.response_time }}с</small>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted">Размер</small><br>
+                                                <small>{{ analysis.page_size|floatformat:0 }}КБ</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> {{ analysis.created_at|date:"d.m.Y H:i" }}
+                                            </small>
+                                            <a href="{% url 'tools:analysis_detail' analysis.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Подробнее
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-bar-chart-line display-4 text-muted"></i>
+                        <h4 class="text-muted mt-3">Нет анализов</h4>
+                        <p class="text-muted">Проведите первый анализ этого сайта</p>
+                        <a href="{% url 'tools:website_list' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Создать анализ
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-muted text-end small mt-4">
+    Сайт добавлен: {{ website.created_at|date:"d.m.Y H:i" }}
+</div>
+{% endblock %}

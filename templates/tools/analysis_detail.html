@@ -43,41 +43,6 @@
     </div>
 </div>
 
-<!-- SEO проблемы -->
-{% if analysis.has_seo_issues %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card stats-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-exclamation-triangle text-danger"></i> 
-                        Найдено {{ analysis.seo_issues|length }} SEO проблем
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% for issue in analysis.seo_issues %}
-                        <div class="alert alert-{% if issue.severity == 'critical' %}danger{% elif issue.severity == 'high' %}warning{% elif issue.severity == 'medium' %}info{% else %}secondary{% endif %} mb-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="alert-heading mb-1">
-                                        <span class="badge bg-{% if issue.severity == 'critical' %}danger{% elif issue.severity == 'high' %}warning{% elif issue.severity == 'medium' %}info{% else %}secondary{% endif %} me-2">
-                                            {{ issue.get_severity_display }}
-                                        </span>
-                                        {{ issue.title }}
-                                    </h6>
-                                    <p class="mb-1">{{ issue.description }}</p>
-                                    <small class="text-muted">
-                                        <strong>Рекомендация:</strong> {{ issue.recommendation }}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-{% endif %}
 
 <div class="row">
     <!-- Основная информация -->

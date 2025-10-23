@@ -5,7 +5,7 @@ app_name = 'tools'
 
 urlpatterns = [
     # Основные инструменты
-    path('', views.WebsiteListView.as_view(), name='website_list'),
+    path('', views.BasicAnalysisListView.as_view(), name='analysis_list'),
     path('websites/', views.WebsiteListView.as_view(), name='website_list'),
     path('websites/<int:pk>/', views.WebsiteDetailView.as_view(), name='website_detail'),
     path('analyses/', views.BasicAnalysisListView.as_view(), name='analysis_list'),

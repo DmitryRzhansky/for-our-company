@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from io import BytesIO
+from datetime import datetime
 from .models import Website, BasicAnalysis, SEOIssue
 from .seo_parser import SEOParser
 
@@ -53,7 +54,6 @@ class WebsiteListView(ListView):
             'total_websites': Website.objects.count(),
             'competitors': Website.objects.filter(is_competitor=True).count(),
             'total_analyses': BasicAnalysis.objects.count(),
-            'websites_with_issues': BasicAnalysis.objects.filter(seo_issues__len__gt=0).values('website').distinct().count(),
         }
         
         return context
@@ -93,12 +93,6 @@ class BasicAnalysisListView(ListView):
         elif competitor_filter == 'false':
             queryset = queryset.filter(website__is_competitor=False)
         
-        # Фильтр по проблемам
-        issues_filter = self.request.GET.get('issues')
-        if issues_filter == 'true':
-            queryset = queryset.filter(seo_issues__len__gt=0)
-        elif issues_filter == 'false':
-            queryset = queryset.filter(seo_issues__len=0)
         
         # Поиск
         search = self.request.GET.get('search')
@@ -124,7 +118,6 @@ class BasicAnalysisListView(ListView):
         # Статистика
         context['stats'] = {
             'total_analyses': BasicAnalysis.objects.count(),
-            'analyses_with_issues': BasicAnalysis.objects.filter(seo_issues__len__gt=0).count(),
             'total_websites': Website.objects.count(),
             'competitors': Website.objects.filter(is_competitor=True).count(),
         }
@@ -197,25 +190,24 @@ def analyze_website(request):
 
 def export_to_excel(request):
     """Экспорт анализов в Excel"""
-    # Получаем отфильтрованные данные
-    analyses = BasicAnalysis.objects.select_related('website')
-    
-    # Применяем фильтры
-    website_id = request.GET.get('website')
-    if website_id:
-        analyses = analyses.filter(website_id=website_id)
-    
-    competitor_filter = request.GET.get('competitor')
-    if competitor_filter == 'true':
-        analyses = analyses.filter(website__is_competitor=True)
-    elif competitor_filter == 'false':
-        analyses = analyses.filter(website__is_competitor=False)
-    
-    issues_filter = request.GET.get('issues')
-    if issues_filter == 'true':
-        analyses = analyses.filter(seo_issues__len__gt=0)
-    elif issues_filter == 'false':
-        analyses = analyses.filter(seo_issues__len=0)
+    # Проверяем, экспортируем ли отдельный анализ
+    analysis_id = request.GET.get('analysis')
+    if analysis_id:
+        analyses = BasicAnalysis.objects.filter(pk=analysis_id).select_related('website')
+    else:
+        # Получаем отфильтрованные данные
+        analyses = BasicAnalysis.objects.select_related('website')
+        
+        # Применяем фильтры
+        website_id = request.GET.get('website')
+        if website_id:
+            analyses = analyses.filter(website_id=website_id)
+        
+        competitor_filter = request.GET.get('competitor')
+        if competitor_filter == 'true':
+            analyses = analyses.filter(website__is_competitor=True)
+        elif competitor_filter == 'false':
+            analyses = analyses.filter(website__is_competitor=False)
     
     search = request.GET.get('search')
     if search:
@@ -303,7 +295,14 @@ def export_to_excel(request):
         output.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename="seo_analysis.xlsx"'
+    # Определяем имя файла
+    if analysis_id:
+        analysis = analyses.first()
+        filename = f"seo_analysis_{analysis.website.name}_{analysis.created_at.strftime('%Y%m%d_%H%M%S')}.xlsx"
+    else:
+        filename = f"seo_analyses_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     
     return response
 
