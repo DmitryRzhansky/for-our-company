@@ -27,6 +27,7 @@ urlpatterns = [
     path('notes/', include('notes.urls')),
     path('resources/', include('resources.urls')),
     path('news/', include('news.urls')),
+    path('tools/', include('tools.urls')),
 ]
 
 if settings.DEBUG:

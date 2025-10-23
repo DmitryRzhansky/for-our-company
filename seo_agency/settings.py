@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'notes',
     'resources',
     'news',
+    'tools',
 ]
 
 MIDDLEWARE = [

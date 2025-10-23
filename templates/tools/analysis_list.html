@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}SEO Анализы - Внутренний девелопмент{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-list-check"></i> SEO Анализы
+            </h1>
+            <div>
+                <a href="{% url 'tools:website_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-globe"></i> Сайты
+                </a>
+                <a href="{% url 'tools:export_excel' %}" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Экспорт в Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-search display-4 mb-2"></i>
+                <h3>{{ stats.total_analyses }}</h3>
+                <p class="mb-0">Всего анализов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle display-4 mb-2"></i>
+                <h3>{{ stats.analyses_with_issues }}</h3>
+                <p class="mb-0">С проблемами</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-globe display-4 mb-2"></i>
+                <h3>{{ stats.total_websites }}</h3>
+                <p class="mb-0">Сайтов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-people display-4 mb-2"></i>
+                <h3>{{ stats.competitors }}</h3>
+                <p class="mb-0">Конкурентов</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры и поиск -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card stats-card">
+            <div class="card-body">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Поиск</label>
+                        <input type="text" class="form-control" id="search" name="search" value="{{ request.GET.search }}" placeholder="Поиск по URL, title...">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="website" class="form-label">Сайт</label>
+                        <select class="form-select" id="website" name="website">
+                            <option value="">Все сайты</option>
+                            {% for website in websites %}
+                                <option value="{{ website.id }}" {% if request.GET.website == website.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ website.name|default:website.url }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="competitor" class="form-label">Тип</label>
+                        <select class="form-select" id="competitor" name="competitor">
+                            <option value="">Все</option>
+                            <option value="true" {% if request.GET.competitor == "true" %}selected{% endif %}>Конкуренты</option>
+                            <option value="false" {% if request.GET.competitor == "false" %}selected{% endif %}>Клиенты</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="issues" class="form-label">Проблемы</label>
+                        <select class="form-select" id="issues" name="issues">
+                            <option value="">Все</option>
+                            <option value="true" {% if request.GET.issues == "true" %}selected{% endif %}>С проблемами</option>
+                            <option value="false" {% if request.GET.issues == "false" %}selected{% endif %}>Без проблем</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="sort" class="form-label">Сортировка</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="-created_at" {% if request.GET.sort == "-created_at" %}selected{% endif %}>Новые сначала</option>
+                            <option value="created_at" {% if request.GET.sort == "created_at" %}selected{% endif %}>Старые сначала</option>
+                            <option value="page_title" {% if request.GET.sort == "page_title" %}selected{% endif %}>По title А-Я</option>
+                            <option value="-response_time" {% if request.GET.sort == "-response_time" %}selected{% endif %}>По времени ответа</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список анализов -->
+<div class="row">
+    {% if analyses %}
+        {% for analysis in analyses %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 samurai-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0">{{ analysis.page_title|truncatechars:50|default:"Без title" }}</h6>
+                            {% if analysis.has_seo_issues %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> {{ analysis.seo_issues|length }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> OK
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-globe"></i> 
+                            <a href="{{ analysis.page_url }}" target="_blank" class="text-decoration-none">
+                                {{ analysis.page_url|truncatechars:40 }}
+                            </a>
+                        </p>
+                        
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-building"></i> 
+                            {% if analysis.website.is_competitor %}
+                                <span class="badge bg-warning me-1">Конкурент</span>
+                            {% endif %}
+                            {{ analysis.website.name|default:analysis.website.url }}
+                        </p>
+                        
+                        {% if analysis.meta_description %}
+                            <p class="card-text text-muted small mb-3">{{ analysis.meta_description|truncatechars:100 }}</p>
+                        {% endif %}
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i><br>
+                                    {{ analysis.response_time|default:"-" }}с
+                                </small>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">
+                                    <i class="bi bi-file-text"></i><br>
+                                    {{ analysis.total_headings }} заголовков
+                                </small>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">
+                                    <i class="bi bi-code"></i><br>
+                                    {{ analysis.status_code|default:"-" }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ analysis.created_at|date:"d.m.Y H:i" }}
+                            </small>
+                            <div>
+                                <a href="{% url 'tools:analysis_detail' analysis.pk %}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if analysis.robots_txt %}
+                                    <a href="{% url 'tools:download_robots' analysis.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Скачать robots.txt">
+                                        <i class="bi bi-file-text"></i>
+                                    </a>
+                                {% endif %}
+                                {% if analysis.sitemap_xml %}
+                                    <a href="{% url 'tools:download_sitemap' analysis.pk %}" class="btn btn-sm btn-outline-info" title="Скачать sitemap.xml">
+                                        <i class="bi bi-diagram-3"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-search display-1 text-muted"></i>
+                <h3 class="text-muted mt-3">Нет анализов</h3>
+                <p class="text-muted">Запустите анализ сайта для просмотра результатов</p>
+                <a href="{% url 'tools:website_list' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Анализировать сайт
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Пагинация -->
+{% if is_paginated %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Навигация по страницам">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.website %}&website={{ request.GET.website }}{% endif %}{% if request.GET.competitor %}&competitor={{ request.GET.competitor }}{% endif %}{% if request.GET.issues %}&issues={{ request.GET.issues }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.website %}&website={{ request.GET.website }}{% endif %}{% if request.GET.competitor %}&competitor={{ request.GET.competitor }}{% endif %}{% if request.GET.issues %}&issues={{ request.GET.issues }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.website %}&website={{ request.GET.website }}{% endif %}{% if request.GET.competitor %}&competitor={{ request.GET.competitor }}{% endif %}{% if request.GET.issues %}&issues={{ request.GET.issues }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.website %}&website={{ request.GET.website }}{% endif %}{% if request.GET.competitor %}&competitor={{ request.GET.competitor }}{% endif %}{% if request.GET.issues %}&issues={{ request.GET.issues }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
