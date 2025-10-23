@@ -326,3 +326,4 @@ def download_sitemap_xml(request, analysis_id):
     response['Content-Disposition'] = f'attachment; filename="sitemap_{analysis.website.name}.xml"'
     
     return response
+

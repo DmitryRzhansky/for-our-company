@@ -136,3 +136,4 @@ class SEOIssue(models.Model):
     
     def __str__(self):
         return f"{self.get_severity_display()} - {self.title}"
+

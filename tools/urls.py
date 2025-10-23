@@ -4,6 +4,7 @@ from . import views
 app_name = 'tools'
 
 urlpatterns = [
+    # Основные инструменты
     path('', views.WebsiteListView.as_view(), name='website_list'),
     path('websites/', views.WebsiteListView.as_view(), name='website_list'),
     path('websites/<int:pk>/', views.WebsiteDetailView.as_view(), name='website_detail'),
