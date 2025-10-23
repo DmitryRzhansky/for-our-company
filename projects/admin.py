@@ -27,7 +27,8 @@ class ProjectContentAdmin(admin.ModelAdmin):
         }),
         ('Файл', {
             'fields': ('file',),
-            'classes': ('collapse',)
+            'classes': ('collapse',),
+            'description': 'Для загрузки нескольких файлов используйте <a href="/projects/upload-multiple/" target="_blank">массовую загрузку</a>'
         }),
         ('HTML контент', {
             'fields': ('html_content',),
@@ -46,4 +47,9 @@ class ProjectContentAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['mass_upload_link'] = '/projects/upload-multiple/'
+        return super().changelist_view(request, extra_context=extra_context)
 

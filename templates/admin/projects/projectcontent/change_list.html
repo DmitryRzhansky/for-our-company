@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="/projects/upload-multiple/" class="addlink" target="_blank">
+            <i class="bi bi-cloud-upload"></i> Массовая загрузка файлов
+        </a>
+    </li>
+{% endblock %}

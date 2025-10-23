@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateField = document.getElementById('id_date');
+    if (dateField && !dateField.value) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        dateField.value = year + '-' + month + '-' + day;
+    }
+});
+</script>
+{% endblock %}

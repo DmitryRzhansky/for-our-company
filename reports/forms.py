@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from .models import WorkReport
 
 
@@ -12,11 +13,18 @@ class WorkReportForm(forms.ModelForm):
         fields = ['project_name', 'project_url', 'work_description', 'date']
         widgets = {
             'work_description': forms.Textarea(attrs={'rows': 3}),
-            'date': forms.DateInput(attrs={'type': 'date'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'id': 'id_date'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Устанавливаем сегодняшнюю дату по умолчанию для новых записей
+        if not self.instance.pk:  # Только для новых записей
+            self.fields['date'].initial = timezone.now().date()
+            # Также устанавливаем значение по умолчанию
+            if 'date' not in self.initial:
+                self.initial['date'] = timezone.now().date()
         
         # Если редактируем существующий отчет, заполняем часы и минуты
         if self.instance and self.instance.pk and self.instance.time_spent:

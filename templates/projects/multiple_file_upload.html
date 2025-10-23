@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Массовая загрузка файлов - SEO Agency{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-cloud-upload"></i> Массовая загрузка файлов
+            </h1>
+            <a href="/admin/projects/projectcontent/" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Назад к контенту
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Инструкция
+                </h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Выберите проект, в который хотите загрузить файлы</li>
+                    <li>Нажмите "Выберите файлы" и выберите несколько файлов (удерживайте Ctrl для выбора нескольких)</li>
+                    <li>Добавьте описание (необязательно)</li>
+                    <li>Нажмите "Загрузить файлы"</li>
+                </ol>
+                <div class="alert alert-info">
+                    <i class="bi bi-lightbulb"></i> 
+                    <strong>Совет:</strong> Вы можете выбрать до 10 файлов одновременно. 
+                    Каждый файл будет создан как отдельная запись в контенте проекта.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-upload"></i> Загрузка файлов
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.project.id_for_label }}" class="form-label">
+                            {{ form.project.label }}
+                        </label>
+                        {{ form.project }}
+                        {% if form.project.help_text %}
+                            <div class="form-text">{{ form.project.help_text }}</div>
+                        {% endif %}
+                        {% if form.project.errors %}
+                            <div class="text-danger">{{ form.project.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.files.id_for_label }}" class="form-label">
+                            {{ form.files.label }}
+                        </label>
+                        {{ form.files }}
+                        {% if form.files.help_text %}
+                            <div class="form-text">{{ form.files.help_text }}</div>
+                        {% endif %}
+                        {% if form.files.errors %}
+                            <div class="text-danger">{{ form.files.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                            <div class="form-text">{{ form.description.help_text }}</div>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Загрузить файлы
+                        </button>
+                        <a href="/admin/projects/projectcontent/" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
