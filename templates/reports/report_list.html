@@ -50,13 +50,23 @@
                         <label for="date_to" class="form-label">До даты</label>
                         <input type="date" name="date_to" id="date_to" class="form-control" value="{{ current_date_to }}">
                     </div>
-                    <div class="col-md-3">
-                        <label for="project" class="form-label">Проект</label>
-                        <select name="project" id="project" class="form-select">
+                    <div class="col-md-2">
+                        <label for="project_select" class="form-label">Выбрать проект</label>
+                        <select name="project_select" id="project_select" class="form-select">
                             <option value="">Все проекты</option>
                             {% for project in projects %}
-                                <option value="{{ project.name }}" {% if current_project_filter == project.name %}selected{% endif %}>
-                                    {{ project.name }}
+                                <option value="{{ project.id }}" {% if selected_project == project.id %}selected{% endif %}>
+                                    {{ project.name }} ({{ project.get_status_display }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="project_status" class="form-label">Статус проекта</label>
+                        <select name="project_status" id="project_status" class="form-select">
+                            {% for value, label in project_status_choices %}
+                                <option value="{{ value }}" {% if selected_project_status == value %}selected{% endif %}>
+                                    {{ label }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -150,7 +160,14 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <h5 class="card-title">
-                                    <i class="bi bi-folder"></i> {{ report.get_project_name }}
+                                    <i class="bi bi-folder"></i> 
+                                    {% if report.project %}
+                                        <a href="{% url 'notes:project_detail_enhanced' report.project.slug %}" class="text-decoration-none">
+                                            {{ report.get_project_name }}
+                                        </a>
+                                    {% else %}
+                                        {{ report.get_project_name }}
+                                    {% endif %}
                                 </h5>
                                 {% if report.project_url %}
                                     <p class="text-muted mb-2">
@@ -188,10 +205,10 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Первая</a>
+                        <a class="page-link" href="?page=1{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}{% if request.GET.project_select %}&project_select={{ request.GET.project_select }}{% endif %}{% if request.GET.project_status %}&project_status={{ request.GET.project_status }}{% endif %}">Первая</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Предыдущая</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}{% if request.GET.project_select %}&project_select={{ request.GET.project_select }}{% endif %}{% if request.GET.project_status %}&project_status={{ request.GET.project_status }}{% endif %}">Предыдущая</a>
                     </li>
                 {% endif %}
                 
@@ -203,10 +220,10 @@
                 
                 {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Следующая</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}{% if request.GET.project_select %}&project_select={{ request.GET.project_select }}{% endif %}{% if request.GET.project_status %}&project_status={{ request.GET.project_status }}{% endif %}">Следующая</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Последняя</a>
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}{% if request.GET.project_select %}&project_select={{ request.GET.project_select }}{% endif %}{% if request.GET.project_status %}&project_status={{ request.GET.project_status }}{% endif %}">Последняя</a>
                     </li>
                 {% endif %}
             </ul>

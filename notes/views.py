@@ -61,6 +61,23 @@ def project_detail_enhanced(request, slug):
     return render(request, 'projects/project_detail_enhanced.html', context)
 
 
+def checklist_detail(request, checklist_id):
+    """Детальная страница чек-листа"""
+    checklist = get_object_or_404(Checklist, id=checklist_id)
+    
+    # Разделяем элементы на выполненные и невыполненные
+    completed_items = checklist.items.filter(is_completed=True)
+    pending_items = checklist.items.filter(is_completed=False)
+    
+    context = {
+        'checklist': checklist,
+        'completed_items': completed_items,
+        'pending_items': pending_items,
+    }
+    
+    return render(request, 'notes/checklist_detail.html', context)
+
+
 @require_POST
 def toggle_checklist_item(request, item_id):
     """Переключение статуса элемента чек-листа"""

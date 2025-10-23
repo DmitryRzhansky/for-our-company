@@ -115,7 +115,15 @@
                     {% for report in today_reports %}
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div>
-                                <h6 class="mb-1">{{ report.get_project_name }}</h6>
+                                <h6 class="mb-1">
+                                    {% if report.project %}
+                                        <a href="{% url 'notes:project_detail_enhanced' report.project.slug %}" class="text-decoration-none">
+                                            {{ report.get_project_name }}
+                                        </a>
+                                    {% else %}
+                                        {{ report.get_project_name }}
+                                    {% endif %}
+                                </h6>
                                 <small class="text-muted">{{ report.work_description|truncatechars:50 }}</small>
                             </div>
                             <span class="badge time-badge">

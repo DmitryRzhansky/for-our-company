@@ -28,23 +28,51 @@ class ProjectListView(ListView):
             # По умолчанию показываем только активные проекты
             queryset = queryset.filter(status__in=['in_progress', 'ready'])
         
+        # Фильтр по выбранному проекту
+        project_filter = self.request.GET.get('project_select')
+        if project_filter:
+            queryset = queryset.filter(id=project_filter)
+        
         # Поиск по названию
         search_query = self.request.GET.get('search')
         if search_query:
             queryset = queryset.filter(name__icontains=search_query)
         
+        # Сортировка
+        sort_by = self.request.GET.get('sort', 'created_at')
+        if sort_by == 'name':
+            queryset = queryset.order_by('name')
+        elif sort_by == 'status':
+            queryset = queryset.order_by('status', '-created_at')
+        else:
+            queryset = queryset.order_by('-created_at')
+        
         return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['status_choices'] = [
-            ('', 'Все статусы'),
-            ('in_progress', 'В работе'),
-            ('ready', 'Готов'),
-            ('archive', 'Архив'),
-        ]
         context['current_status'] = self.request.GET.get('status', '')
         context['search_query'] = self.request.GET.get('search', '')
+        context['current_sort'] = self.request.GET.get('sort', 'created_at')
+        context['selected_project'] = self.request.GET.get('project_select', '')
+        
+        # Список всех проектов для выпадающего меню
+        context['all_projects'] = Project.objects.all().order_by('name')
+        
+        # Выбранный проект для отображения в статистике
+        if context['selected_project']:
+            try:
+                context['selected_project_obj'] = Project.objects.get(id=context['selected_project'])
+            except Project.DoesNotExist:
+                context['selected_project_obj'] = None
+        else:
+            context['selected_project_obj'] = None
+        
+        # Статистика по статусам
+        from django.db.models import Count
+        status_stats = Project.objects.values('status').annotate(count=Count('id'))
+        context['status_stats'] = {item['status']: item['count'] for item in status_stats}
+        
         return context
 
 

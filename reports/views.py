@@ -51,6 +51,16 @@ class ReportListView(ListView):
                 Q(project_name__icontains=project_filter)
             )
         
+        # Фильтр по выбранному проекту
+        project_select = self.request.GET.get('project_select')
+        if project_select:
+            queryset = queryset.filter(project_id=project_select)
+        
+        # Фильтр по статусу проекта
+        project_status = self.request.GET.get('project_status')
+        if project_status:
+            queryset = queryset.filter(project__status=project_status)
+        
         # Поиск по названию проекта
         search_query = self.request.GET.get('search')
         if search_query:
@@ -98,10 +108,20 @@ class ReportListView(ListView):
         context['current_date_to'] = self.request.GET.get('date_to', '')
         context['current_project_filter'] = self.request.GET.get('project', '')
         context['current_search'] = self.request.GET.get('search', '')
+        context['selected_project'] = self.request.GET.get('project_select', '')
+        context['selected_project_status'] = self.request.GET.get('project_status', '')
         
         # Список проектов для фильтра
         from projects.models import Project
         context['projects'] = Project.objects.all().order_by('name')
+        
+        # Статусы проектов
+        context['project_status_choices'] = [
+            ('', 'Все статусы'),
+            ('in_progress', 'В работе'),
+            ('ready', 'Готов'),
+            ('archive', 'Архив'),
+        ]
         
         return context
 
@@ -111,9 +131,13 @@ def export_to_excel(request):
     # Получаем фильтры
     date_filter = request.GET.get('date', 'all')
     project_filter = request.GET.get('project', '')
+    project_select = request.GET.get('project_select', '')
+    project_status = request.GET.get('project_status', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
     
     # Фильтруем данные
-    queryset = WorkReport.objects.all()
+    queryset = WorkReport.objects.select_related('project').all()
     
     if date_filter == 'today':
         today = timezone.now().date()
@@ -125,8 +149,20 @@ def export_to_excel(request):
         month_ago = timezone.now().date() - timedelta(days=30)
         queryset = queryset.filter(date__gte=month_ago)
     
+    # Фильтр по конкретным датам
+    if date_from:
+        queryset = queryset.filter(date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(date__lte=date_to)
+    
     if project_filter:
         queryset = queryset.filter(project_name__icontains=project_filter)
+    
+    if project_select:
+        queryset = queryset.filter(project_id=project_select)
+    
+    if project_status:
+        queryset = queryset.filter(project__status=project_status)
     
     # Создаем Excel файл
     wb = openpyxl.Workbook()

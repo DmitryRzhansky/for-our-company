@@ -13,6 +13,54 @@
                 <i class="bi bi-plus-circle"></i> Новый проект
             </a>
         </div>
+        
+        <!-- Статистика по статусам -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="bi bi-clock"></i> В работе
+                                </h5>
+                                <h3 class="mb-0">{{ status_stats.in_progress|default:0 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="bi bi-check-circle"></i> Готов
+                                </h5>
+                                <h3 class="mb-0">{{ status_stats.ready|default:0 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="bi bi-archive"></i> Архив
+                                </h5>
+                                <h3 class="mb-0">{{ status_stats.archive|default:0 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="bi bi-folder"></i> Всего
+                                </h5>
+                                <h3 class="mb-0">{{ projects|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -22,22 +70,31 @@
         <div class="card">
             <div class="card-body">
                 <form method="get" class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="search" class="form-label">Поиск</label>
                         <input type="text" name="search" id="search" class="form-control" 
                                placeholder="Поиск по названию проекта" value="{{ search_query }}">
                     </div>
                     <div class="col-md-3">
-                        <label for="status" class="form-label">Статус</label>
-                        <select name="status" id="status" class="form-select">
-                            {% for value, label in status_choices %}
-                                <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
-                                    {{ label }}
+                        <label for="project_select" class="form-label">Выбрать проект</label>
+                        <select name="project_select" id="project_select" class="form-select">
+                            <option value="">Все проекты</option>
+                            {% for project in all_projects %}
+                                <option value="{{ project.id }}" {% if selected_project == project.id %}selected{% endif %}>
+                                    {{ project.name }} ({{ project.get_status_display }})
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label for="sort" class="form-label">Сортировка</label>
+                        <select name="sort" id="sort" class="form-select">
+                            <option value="created_at" {% if current_sort == 'created_at' %}selected{% endif %}>По дате создания</option>
+                            <option value="name" {% if current_sort == 'name' %}selected{% endif %}>По названию</option>
+                            <option value="status" {% if current_sort == 'status' %}selected{% endif %}>По статусу</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">&nbsp;</label>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
@@ -53,6 +110,57 @@
         </div>
     </div>
 </div>
+
+<!-- Быстрые фильтры -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="btn-group" role="group" aria-label="Быстрые фильтры">
+            <a href="{% url 'projects:project_list' %}" 
+               class="btn {% if not current_status %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-folder"></i> Все проекты
+            </a>
+            <a href="{% url 'projects:project_list' %}?status=in_progress" 
+               class="btn {% if current_status == 'in_progress' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                <i class="bi bi-clock"></i> В работе
+            </a>
+            <a href="{% url 'projects:project_list' %}?status=ready" 
+               class="btn {% if current_status == 'ready' %}btn-success{% else %}btn-outline-success{% endif %}">
+                <i class="bi bi-check-circle"></i> Готов
+            </a>
+            <a href="{% url 'projects:project_list' %}?status=archive" 
+               class="btn {% if current_status == 'archive' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                <i class="bi bi-archive"></i> Архив
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика фильтров -->
+{% if current_status or search_query or selected_project %}
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-funnel"></i> 
+                {% if current_status %}
+                    Фильтр: {{ current_status|title }}
+                {% endif %}
+                {% if search_query %}
+                    {% if current_status %} | {% endif %}
+                    Поиск: "{{ search_query }}"
+                {% endif %}
+                {% if selected_project_obj %}
+                    {% if current_status or search_query %} | {% endif %}
+                    Проект: {{ selected_project_obj.name }}
+                {% endif %}
+            </div>
+            <a href="{% url 'projects:project_list' %}" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-x-circle"></i> Очистить фильтры
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% if projects %}
     <div class="row">
@@ -111,10 +219,10 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">Первая</a>
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if selected_project %}&project_select={{ selected_project }}{% endif %}">Первая</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">Предыдущая</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if selected_project %}&project_select={{ selected_project }}{% endif %}">Предыдущая</a>
                     </li>
                 {% endif %}
                 
@@ -126,10 +234,10 @@
                 
                 {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">Следующая</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if selected_project %}&project_select={{ selected_project }}{% endif %}">Следующая</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">Последняя</a>
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if selected_project %}&project_select={{ selected_project }}{% endif %}">Последняя</a>
                     </li>
                 {% endif %}
             </ul>

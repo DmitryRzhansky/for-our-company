@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ checklist.title }} - Чек-лист{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="bi bi-list-check"></i> {{ checklist.title }}
+                </h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-folder"></i> Проект: 
+                    <a href="{% url 'notes:project_detail_enhanced' checklist.project.slug %}" class="text-decoration-none">
+                        {{ checklist.project.name }}
+                    </a>
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'notes:project_detail_enhanced' checklist.project.slug %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Назад к проекту
+                </a>
+                <a href="/admin/notes/checklist/{{ checklist.id }}/change/" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Прогресс -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Прогресс выполнения</h5>
+                    <span class="badge bg-{% if checklist.progress_percentage == 100 %}success{% elif checklist.progress_percentage > 0 %}warning{% else %}secondary{% endif %} fs-6">
+                        {{ checklist.completed_items }}/{{ checklist.total_items }} ({{ checklist.progress_percentage }}%)
+                    </span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar" role="progressbar" style="width: {{ checklist.progress_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Описание -->
+{% if checklist.description %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle"></i> Описание
+                    </h5>
+                    <p class="card-text">{{ checklist.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Элементы чек-листа -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i> Элементы чек-листа
+                </h5>
+                <button class="btn btn-sm btn-success" onclick="addNewItem()">
+                    <i class="bi bi-plus"></i> Добавить элемент
+                </button>
+            </div>
+            <div class="card-body">
+                {% if checklist.items.all %}
+                    <div class="accordion" id="checklistAccordion">
+                        <!-- Выполненные элементы -->
+                        {% if completed_items %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="completedHeader">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#completedItems">
+                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                        Выполненные ({{ completed_items|length }})
+                                    </button>
+                                </h2>
+                                <div id="completedItems" class="accordion-collapse collapse" data-bs-parent="#checklistAccordion">
+                                    <div class="accordion-body">
+                                        {% for item in completed_items %}
+                                            <div class="d-flex align-items-center mb-2 p-2 bg-light rounded">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <span class="flex-grow-1 text-decoration-line-through">{{ item.text }}</span>
+                                                <small class="text-muted">{{ item.completed_at|date:"d.m.Y H:i" }}</small>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Невыполненные элементы -->
+                        {% if pending_items %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="pendingHeader">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pendingItems">
+                                        <i class="bi bi-circle text-warning me-2"></i>
+                                        Невыполненные ({{ pending_items|length }})
+                                    </button>
+                                </h2>
+                                <div id="pendingItems" class="accordion-collapse collapse show" data-bs-parent="#checklistAccordion">
+                                    <div class="accordion-body">
+                                        {% for item in pending_items %}
+                                            <div class="d-flex align-items-center mb-2 p-2 border rounded">
+                                                <input type="checkbox" class="form-check-input me-2" 
+                                                       onchange="toggleItem({{ item.id }})" 
+                                                       id="item_{{ item.id }}">
+                                                <label for="item_{{ item.id }}" class="flex-grow-1 mb-0">{{ item.text }}</label>
+                                                <small class="text-muted">{{ item.created_at|date:"d.m.Y" }}</small>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Нет элементов в чек-листе</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления нового элемента -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить элемент</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addItemForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="itemText" class="form-label">Текст элемента</label>
+                        <textarea class="form-control" id="itemText" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+
+<script>
+function toggleItem(itemId) {
+    fetch(`/notes/checklist-item/${itemId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Перезагружаем страницу для обновления статистики
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Ошибка при обновлении элемента');
+    });
+}
+
+function addNewItem() {
+    const modal = new bootstrap.Modal(document.getElementById('addItemModal'));
+    modal.show();
+}
+
+document.getElementById('addItemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const text = document.getElementById('itemText').value.trim();
+    
+    if (text) {
+        fetch(`/notes/checklist/{{ checklist.id }}/add-item/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `text=${encodeURIComponent(text)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка при добавлении элемента');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Ошибка при добавлении элемента');
+        });
+    }
+});
+</script>
+{% endblock %}
