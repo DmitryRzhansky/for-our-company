@@ -12,6 +12,49 @@ document.addEventListener('DOMContentLoaded', function() {
         const day = String(today.getDate()).padStart(2, '0');
         dateField.value = year + '-' + month + '-' + day;
     }
+    
+    // Автоматическое заполнение полей при выборе проекта
+    const projectSelect = document.getElementById('id_project');
+    const projectNameField = document.getElementById('id_project_name');
+    const projectUrlField = document.getElementById('id_project_url');
+    
+    if (projectSelect && projectNameField && projectUrlField) {
+        projectSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                // Получаем данные проекта через AJAX
+                fetch('/admin/projects/project/' + selectedOption.value + '/change/', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Парсим HTML для получения названия и URL
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const nameField = doc.querySelector('#id_name');
+                    const urlField = doc.querySelector('#id_project_url');
+                    
+                    if (nameField) {
+                        projectNameField.value = nameField.value || selectedOption.text;
+                    }
+                    if (urlField) {
+                        projectUrlField.value = urlField.value || '';
+                    }
+                })
+                .catch(error => {
+                    console.log('Ошибка загрузки данных проекта:', error);
+                    // Fallback - используем текст опции
+                    projectNameField.value = selectedOption.text;
+                });
+            } else {
+                projectNameField.value = '';
+                projectUrlField.value = '';
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

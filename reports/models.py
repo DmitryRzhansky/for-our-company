@@ -3,7 +3,8 @@ from django.utils import timezone
 
 
 class WorkReport(models.Model):
-    project_name = models.CharField(max_length=200, verbose_name='Название проекта')
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, verbose_name='Проект', null=True, blank=True)
+    project_name = models.CharField(max_length=200, verbose_name='Название проекта (если не выбран проект)')
     project_url = models.URLField(blank=True, verbose_name='Ссылка на проект')
     work_description = models.TextField(verbose_name='Описание работы')
     time_spent = models.DurationField(verbose_name='Потрачено времени')
@@ -16,7 +17,14 @@ class WorkReport(models.Model):
         ordering = ['-date', '-created_at']
     
     def __str__(self):
-        return f"{self.date} - {self.project_name} ({self.time_spent})"
+        project_name = self.get_project_name()
+        return f"{self.date} - {project_name} ({self.time_spent})"
+    
+    def get_project_name(self):
+        """Возвращает название проекта"""
+        if self.project:
+            return self.project.name
+        return self.project_name
     
     @property
     def time_spent_hours(self):

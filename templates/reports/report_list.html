@@ -21,6 +21,84 @@
     </div>
 </div>
 
+<!-- Поиск и фильтры -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Поиск</label>
+                        <input type="text" name="search" id="search" class="form-control" 
+                               placeholder="Поиск по проекту или описанию" value="{{ current_search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date" class="form-label">Период</label>
+                        <select name="date" id="date" class="form-select" onchange="toggleCustomDates()">
+                            {% for value, label in date_choices %}
+                                <option value="{{ value }}" {% if current_date_filter == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2" id="date-from-group" style="display: none;">
+                        <label for="date_from" class="form-label">От даты</label>
+                        <input type="date" name="date_from" id="date_from" class="form-control" value="{{ current_date_from }}">
+                    </div>
+                    <div class="col-md-2" id="date-to-group" style="display: none;">
+                        <label for="date_to" class="form-label">До даты</label>
+                        <input type="date" name="date_to" id="date_to" class="form-control" value="{{ current_date_to }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="project" class="form-label">Проект</label>
+                        <select name="project" id="project" class="form-select">
+                            <option value="">Все проекты</option>
+                            {% for project in projects %}
+                                <option value="{{ project.name }}" {% if current_project_filter == project.name %}selected{% endif %}>
+                                    {{ project.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Найти
+                            </button>
+                            <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Сбросить
+                            </a>
+                        </div>
+                    </div>
+                </form>
+                
+                <script>
+                function toggleCustomDates() {
+                    const dateSelect = document.getElementById('date');
+                    const dateFromGroup = document.getElementById('date-from-group');
+                    const dateToGroup = document.getElementById('date-to-group');
+                    
+                    if (dateSelect.value === 'custom') {
+                        dateFromGroup.style.display = 'block';
+                        dateToGroup.style.display = 'block';
+                    } else {
+                        dateFromGroup.style.display = 'none';
+                        dateToGroup.style.display = 'none';
+                    }
+                }
+                
+                // Инициализация при загрузке страницы
+                document.addEventListener('DOMContentLoaded', function() {
+                    toggleCustomDates();
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Статистика -->
 <div class="row mb-4">
     <div class="col-md-3">
@@ -61,42 +139,6 @@
     </div>
 </div>
 
-<!-- Фильтры -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <form method="get" class="row g-3">
-                    <div class="col-md-3">
-                        <label for="date" class="form-label">Период</label>
-                        <select name="date" id="date" class="form-select">
-                            <option value="">Все время</option>
-                            <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Сегодня</option>
-                            <option value="week" {% if request.GET.date == 'week' %}selected{% endif %}>За неделю</option>
-                            <option value="month" {% if request.GET.date == 'month' %}selected{% endif %}>За месяц</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="project" class="form-label">Проект</label>
-                        <input type="text" name="project" id="project" class="form-control" 
-                               placeholder="Поиск по названию проекта" value="{{ request.GET.project }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> Фильтровать
-                            </button>
-                            <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> Сбросить
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Список отчетов -->
 {% if reports %}
@@ -108,7 +150,7 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <h5 class="card-title">
-                                    <i class="bi bi-folder"></i> {{ report.project_name }}
+                                    <i class="bi bi-folder"></i> {{ report.get_project_name }}
                                 </h5>
                                 {% if report.project_url %}
                                     <p class="text-muted mb-2">
@@ -146,10 +188,10 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Первая</a>
+                        <a class="page-link" href="?page=1{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Первая</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Предыдущая</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Предыдущая</a>
                     </li>
                 {% endif %}
                 
@@ -161,10 +203,10 @@
                 
                 {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Следующая</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Следующая</a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Последняя</a>
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}">Последняя</a>
                     </li>
                 {% endif %}
             </ul>

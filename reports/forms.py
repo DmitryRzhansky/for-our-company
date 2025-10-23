@@ -10,7 +10,7 @@ class WorkReportForm(forms.ModelForm):
     
     class Meta:
         model = WorkReport
-        fields = ['project_name', 'project_url', 'work_description', 'date']
+        fields = ['project', 'project_url', 'work_description', 'date']
         widgets = {
             'work_description': forms.Textarea(attrs={'rows': 3}),
             'date': forms.DateInput(attrs={'type': 'date', 'id': 'id_date'}),
@@ -33,6 +33,10 @@ class WorkReportForm(forms.ModelForm):
             minutes = int((total_seconds % 3600) // 60)
             self.fields['hours'].initial = hours
             self.fields['minutes'].initial = minutes
+        
+        # Делаем project_name необязательным, если выбран проект
+        self.fields['project_name'].required = False
+        self.fields['project_name'].help_text = 'Заполните только если не выбран проект выше'
     
     def clean(self):
         cleaned_data = super().clean()

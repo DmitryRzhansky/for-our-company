@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.http import HttpResponse
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
+from django.db import models
 from datetime import datetime, timedelta
 from django.utils import timezone
 import openpyxl
@@ -16,10 +17,13 @@ class ReportListView(ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        queryset = WorkReport.objects.all()
+        queryset = WorkReport.objects.select_related('project').all()
         
         # Фильтр по дате
         date_filter = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        
         if date_filter == 'today':
             today = timezone.now().date()
             queryset = queryset.filter(date=today)
@@ -29,11 +33,32 @@ class ReportListView(ListView):
         elif date_filter == 'month':
             month_ago = timezone.now().date() - timedelta(days=30)
             queryset = queryset.filter(date__gte=month_ago)
+        elif date_filter == 'year':
+            year_ago = timezone.now().date() - timedelta(days=365)
+            queryset = queryset.filter(date__gte=year_ago)
+        
+        # Фильтр по конкретным датам
+        if date_from:
+            queryset = queryset.filter(date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(date__lte=date_to)
         
         # Фильтр по проекту
         project_filter = self.request.GET.get('project')
         if project_filter:
-            queryset = queryset.filter(project_name__icontains=project_filter)
+            queryset = queryset.filter(
+                Q(project__name__icontains=project_filter) |
+                Q(project_name__icontains=project_filter)
+            )
+        
+        # Поиск по названию проекта
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(project__name__icontains=search_query) |
+                Q(project_name__icontains=search_query) |
+                Q(work_description__icontains=search_query)
+            )
         
         return queryset
     
@@ -58,6 +83,25 @@ class ReportListView(ListView):
             'total_reports': WorkReport.objects.count(),
             'projects_count': WorkReport.objects.values('project_name').distinct().count(),
         }
+        
+        # Фильтры
+        context['date_choices'] = [
+            ('', 'Все даты'),
+            ('today', 'Сегодня'),
+            ('week', 'За неделю'),
+            ('month', 'За месяц'),
+            ('year', 'За год'),
+            ('custom', 'Выбрать период'),
+        ]
+        context['current_date_filter'] = self.request.GET.get('date', '')
+        context['current_date_from'] = self.request.GET.get('date_from', '')
+        context['current_date_to'] = self.request.GET.get('date_to', '')
+        context['current_project_filter'] = self.request.GET.get('project', '')
+        context['current_search'] = self.request.GET.get('search', '')
+        
+        # Список проектов для фильтра
+        from projects.models import Project
+        context['projects'] = Project.objects.all().order_by('name')
         
         return context
 
