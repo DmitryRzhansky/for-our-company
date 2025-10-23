@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import WorkReport
+from .forms import WorkReportForm
 
 
 @admin.register(WorkReport)
 class WorkReportAdmin(admin.ModelAdmin):
+    form = WorkReportForm
     list_display = ('date', 'project_name', 'time_spent_hours', 'work_description_short')
     list_filter = ('date', 'created_at')
     search_fields = ('project_name', 'work_description')
@@ -16,7 +18,8 @@ class WorkReportAdmin(admin.ModelAdmin):
             'fields': ('project_name', 'project_url', 'date')
         }),
         ('Работа', {
-            'fields': ('work_description', 'time_spent')
+            'fields': ('work_description', 'hours', 'minutes'),
+            'description': 'Укажите часы и минуты работы'
         }),
     )
     

@@ -2,27 +2,15 @@ from django.contrib import admin
 from .models import Project, ProjectContent
 
 
-class ProjectContentInline(admin.StackedInline):
-    model = ProjectContent
-    extra = 1
-    fields = ('title', 'content_type', 'description', 'file', 'html_content', 'text_content', 'external_url', 'image', 'order')
-
-
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'project_url', 'status', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('name', 'project_url')
-    prepopulated_fields = {'slug': ('name',)}
-    inlines = [ProjectContentInline]
     
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'project_url', 'description', 'status')
-        }),
-        ('URL', {
-            'fields': ('slug',),
-            'classes': ('collapse',)
         }),
     )
 
@@ -35,7 +23,7 @@ class ProjectContentAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Основная информация', {
-            'fields': ('project', 'title', 'content_type', 'description', 'order')
+            'fields': ('project', 'title', 'content_type', 'description')
         }),
         ('Файл', {
             'fields': ('file',),
@@ -58,3 +46,4 @@ class ProjectContentAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+

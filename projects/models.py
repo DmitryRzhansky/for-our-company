@@ -29,8 +29,16 @@ class Project(models.Model):
         ordering = ['-created_at']
     
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        if not self.slug or self.slug == '':
+            base_slug = slugify(self.name)
+            self.slug = base_slug
+            
+            # Проверяем уникальность slug и добавляем число если нужно
+            counter = 1
+            while Project.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{base_slug}-{counter}"
+                counter += 1
+        
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
@@ -70,12 +78,12 @@ class ProjectContent(models.Model):
     image = models.ImageField(upload_to='projects/images/', blank=True, null=True, verbose_name='Изображение')
     
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
-    order = models.IntegerField(default=0, verbose_name='Порядок')
     
     class Meta:
         verbose_name = 'Контент проекта'
         verbose_name_plural = 'Контент проектов'
-        ordering = ['order', '-created_at']
+        ordering = ['-created_at']
     
     def __str__(self):
         return f"{self.project.name} - {self.title}"
+

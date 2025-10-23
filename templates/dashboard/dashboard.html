@@ -70,11 +70,21 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div>
                                 <h6 class="mb-1">
-                                    <a href="{{ project.get_absolute_url }}" class="text-decoration-none">
+                                    {% if project.slug %}
+                                        <a href="{{ project.get_absolute_url }}" class="text-decoration-none">
+                                            {{ project.name }}
+                                        </a>
+                                    {% else %}
                                         {{ project.name }}
-                                    </a>
+                                    {% endif %}
                                 </h6>
-                                <small class="text-muted">{{ project.client }}</small>
+                                {% if project.project_url %}
+                                    <small class="text-muted">
+                                        <a href="{{ project.project_url }}" target="_blank" class="text-decoration-none">
+                                            {{ project.project_url|truncatechars:30 }}
+                                        </a>
+                                    </small>
+                                {% endif %}
                             </div>
                             <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge">
                                 {{ project.get_status_display }}

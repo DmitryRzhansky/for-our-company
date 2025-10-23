@@ -24,9 +24,13 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="card-title">
-                            <a href="{% url 'projects:project_detail' project.slug %}" class="text-decoration-none">
-                                {{ project.name }}
-                            </a>
+                                {% if project.slug %}
+                                    <a href="{% url 'projects:project_detail' project.slug %}" class="text-decoration-none">
+                                        {{ project.name }}
+                                    </a>
+                                {% else %}
+                                    {{ project.name }}
+                                {% endif %}
                             </h5>
                             <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge">
                                 {{ project.get_status_display }}
@@ -47,9 +51,15 @@
                             <small class="text-muted">
                                 <i class="bi bi-calendar"></i> {{ project.created_at|date:"d.m.Y" }}
                             </small>
-                            <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> Открыть
-                            </a>
+                            {% if project.slug %}
+                                <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Открыть
+                                </a>
+                            {% else %}
+                                <span class="btn btn-sm btn-outline-secondary disabled">
+                                    <i class="bi bi-eye"></i> Нет ссылки
+                                </span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
