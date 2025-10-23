@@ -13,9 +13,9 @@
                 <a href="/admin/reports/workreport/add/" class="btn btn-success me-2">
                     <i class="bi bi-plus-circle"></i> Новый отчет
                 </a>
-                <a href="{% url 'reports:export_reports' %}" class="btn btn-warning">
+                <button type="button" class="btn btn-warning" onclick="exportToExcel()">
                     <i class="bi bi-download"></i> Экспорт Excel
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -239,4 +239,17 @@
         </a>
     </div>
 {% endif %}
+
+<script>
+function exportToExcel() {
+    // Получаем все параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Создаем URL для экспорта с теми же параметрами
+    const exportUrl = "{% url 'reports:export_reports' %}?" + urlParams.toString();
+    
+    // Открываем экспорт в новом окне
+    window.open(exportUrl, '_blank');
+}
+</script>
 {% endblock %}
