@@ -334,9 +334,14 @@ class SEOParser:
         words = re.findall(r'\b\w+\b', text.lower())
         data['word_count'] = len(words)
         
-        # Длина title и description (используем уже извлеченные данные)
-        data['title_length'] = len(data.get('page_title', ''))
-        data['description_length'] = len(data.get('meta_description', ''))
+        # Длина title и description (парсим заново для точности)
+        title = soup.find('title')
+        title_text = title.get_text().strip() if title else ''
+        data['title_length'] = len(title_text)
+        
+        meta_desc = soup.find('meta', attrs={'name': 'description'})
+        desc_text = meta_desc.get('content', '').strip() if meta_desc else ''
+        data['description_length'] = len(desc_text)
         
         # Анализ ссылок
         links_data = self._analyze_links(soup, url)
