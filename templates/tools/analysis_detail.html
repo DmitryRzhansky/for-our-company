@@ -537,11 +537,8 @@
                         <span class="badge bg-primary">Клиент</span>
                     {% endif %}
                 </p>
-                <p class="mb-2">
-                    <strong>Анализ проведен:</strong> {{ analysis.created_at|date:"d.m.Y H:i" }}
-                </p>
                 <p class="mb-0">
-                    <strong>Обновлен:</strong> {{ analysis.updated_at|date:"d.m.Y H:i" }}
+                    <strong>Анализ проведен:</strong> {{ analysis.created_at|date:"d.m.Y H:i" }}
                 </p>
             </div>
         </div>

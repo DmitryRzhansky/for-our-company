@@ -2,6 +2,7 @@
 
 {% block title %}SEO Анализы - Внутренний девелопмент{% endblock %}
 
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -32,18 +33,18 @@
                         {% csrf_token %}
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label for="url" class="form-label">URL сайта</label>
-                                <input type="url" class="form-control" id="url" name="url" required placeholder="https://example.com">
+                                <label for="url" class="form-label" style="color: white !important;">URL сайта</label>
+                                <input type="url" class="form-control" id="url" name="url" required placeholder="https://example.com" style="color: white !important;" onfocus="this.style.color='white'" onblur="this.style.color='white'">
                             </div>
                             <div class="col-md-3">
-                                <label for="name" class="form-label">Название сайта</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Название (необязательно)">
+                                <label for="name" class="form-label" style="color: white !important;">Название сайта</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Название (необязательно)" style="color: white !important;">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Тип</label>
+                                <label class="form-label" style="color: white !important;">Тип</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="is_competitor" name="is_competitor">
-                                    <label class="form-check-label" for="is_competitor">
+                                    <label class="form-check-label" for="is_competitor" style="color: white !important;">
                                         Конкурент
                                     </label>
                                 </div>
@@ -57,9 +58,9 @@
                         </div>
                         <div class="row g-3 mt-2">
                             <div class="col-12">
-                                <label for="keywords" class="form-label">Ключевые слова (по одному на строку)</label>
-                                <textarea class="form-control" id="keywords" name="keywords" rows="3" placeholder="пластиковые окна&#10;установка окон&#10;окна пвх"></textarea>
-                                <div class="alert alert-dark" style="color: #fff !important; background-color: #000 !important; border: 1px solid #333 !important;">
+                                <label for="keywords" class="form-label" style="color: white !important;">Ключевые слова (по одному на строку)</label>
+                                <textarea class="form-control" id="keywords" name="keywords" rows="3" placeholder="пластиковые окна&#10;установка окон&#10;окна пвх" style="color: white !important;"></textarea>
+                                <div style="color: white !important;">
                                     <i class="bi bi-info-circle"></i> 
                                     <strong>Анализирует:</strong> SEO-теги, заголовки, метрики, плотность ключевых слов, ссылки, извлеченный текст
                                 </div>
