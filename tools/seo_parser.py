@@ -23,7 +23,7 @@ class SEOParser:
             'Cache-Control': 'max-age=0'
         })
     
-    def parse_url(self, url):
+    def parse_url(self, url, keywords=None):
         """Парсит URL и возвращает SEO-данные"""
         try:
             start_time = time.time()
@@ -76,6 +76,10 @@ class SEOParser:
             
             # SEO проблемы
             data['seo_issues'] = self._find_seo_issues(data, soup)
+            
+            # Простые метрики
+            metrics_data = self._analyze_simple_metrics(soup, url, keywords)
+            data.update(metrics_data)
             
             return data
             
@@ -269,3 +273,97 @@ class SEOParser:
             return response.text if response.status_code == 200 else ''
         except:
             return ''
+    
+    def _analyze_simple_metrics(self, soup, url, keywords=None):
+        """Анализирует простые метрики"""
+        import re
+        
+        # Извлекаем весь текст
+        text = soup.get_text()
+        data = {
+            'extracted_text': text[:5000] + '...' if len(text) > 5000 else text,  # Ограничиваем размер
+        }
+        
+        # Подсчет слов
+        words = re.findall(r'\b\w+\b', text.lower())
+        data['word_count'] = len(words)
+        
+        # Длина title и description
+        title = soup.find('title')
+        title_text = title.get_text().strip() if title else ''
+        data['title_length'] = len(title_text)
+        
+        meta_desc = soup.find('meta', attrs={'name': 'description'})
+        desc_text = meta_desc.get('content', '').strip() if meta_desc else ''
+        data['description_length'] = len(desc_text)
+        
+        # Анализ ссылок
+        links_data = self._analyze_links(soup, url)
+        data.update(links_data)
+        
+        # Анализ ключевых слов
+        if keywords:
+            keyword_analysis = self._analyze_keywords(text, keywords)
+            data['keyword_analysis'] = keyword_analysis
+        else:
+            data['keyword_analysis'] = {}
+        
+        return data
+    
+    def _analyze_links(self, soup, base_url):
+        """Анализ ссылок на странице"""
+        links = soup.find_all('a', href=True)
+        base_domain = urlparse(base_url).netloc
+        
+        internal_links = 0
+        external_links = 0
+        
+        for link in links:
+            href = link['href']
+            
+            # Пропускаем якорные ссылки и javascript
+            if href.startswith('#') or href.startswith('javascript:'):
+                continue
+            
+            # Преобразуем относительные ссылки в абсолютные
+            if href.startswith('/'):
+                href = urljoin(base_url, href)
+            elif not href.startswith('http'):
+                href = urljoin(base_url, href)
+            
+            try:
+                link_domain = urlparse(href).netloc
+                if link_domain == base_domain:
+                    internal_links += 1
+                else:
+                    external_links += 1
+            except:
+                continue
+        
+        return {
+            'internal_links': internal_links,
+            'external_links': external_links,
+            'total_links': internal_links + external_links
+        }
+    
+    def _analyze_keywords(self, text, keywords):
+        """Анализ плотности ключевых слов"""
+        import re
+        text_lower = text.lower()
+        analysis = {}
+        
+        for keyword in keywords:
+            keyword_lower = keyword.lower()
+            # Подсчитываем количество вхождений
+            count = text_lower.count(keyword_lower)
+            
+            # Вычисляем плотность (в процентах)
+            word_count = len(re.findall(r'\b\w+\b', text_lower))
+            density = (count / word_count * 100) if word_count > 0 else 0
+            
+            analysis[keyword] = {
+                'count': count,
+                'density': round(density, 2)
+            }
+        
+        return analysis

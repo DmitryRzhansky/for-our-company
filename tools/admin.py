@@ -59,3 +59,4 @@ class SEOIssueAdmin(admin.ModelAdmin):
     list_filter = ['category', 'severity', 'created_at']
     search_fields = ['title', 'description', 'recommendation']
     ordering = ['-severity', 'category']
+

@@ -138,6 +138,7 @@ def analyze_website(request):
         url = request.POST.get('url')
         website_name = request.POST.get('name', '')
         is_competitor = request.POST.get('is_competitor') == 'on'
+        keywords = request.POST.get('keywords', '').strip()
         
         if not url:
             messages.error(request, 'Введите URL для анализа')
@@ -155,7 +156,8 @@ def analyze_website(request):
             
             # Парсим данные
             parser = SEOParser()
-            data = parser.parse_url(url)
+            keywords_list = [k.strip() for k in keywords.split('\n') if k.strip()] if keywords else None
+            data = parser.parse_url(url, keywords_list)
             
             if 'error' in data:
                 messages.error(request, f'Ошибка анализа: {data["error"]}')
@@ -178,7 +180,7 @@ def analyze_website(request):
                     **issue_data
                 )
             
-            messages.success(request, f'Анализ завершен! Найдено {len(data.get("seo_issues", []))} проблем.')
+            messages.success(request, f'Анализ завершен! Найдено {data.get("word_count", 0)} слов, {data.get("total_links", 0)} ссылок.')
             return redirect('tools:analysis_detail', pk=analysis.pk)
             
         except Exception as e:
@@ -325,4 +327,6 @@ def download_sitemap_xml(request, analysis_id):
     response['Content-Disposition'] = f'attachment; filename="sitemap_{analysis.website.name}.xml"'
     
     return response
+
+
 

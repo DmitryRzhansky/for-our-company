@@ -68,6 +68,16 @@ class BasicAnalysis(models.Model):
     # SEO проблемы
     seo_issues = models.JSONField(default=list, verbose_name="SEO проблемы")
     
+    # Простые метрики
+    word_count = models.IntegerField(default=0, verbose_name="Количество слов")
+    title_length = models.IntegerField(default=0, verbose_name="Длина title")
+    description_length = models.IntegerField(default=0, verbose_name="Длина description")
+    internal_links = models.IntegerField(default=0, verbose_name="Внутренние ссылки")
+    external_links = models.IntegerField(default=0, verbose_name="Внешние ссылки")
+    total_links = models.IntegerField(default=0, verbose_name="Всего ссылок")
+    extracted_text = models.TextField(blank=True, verbose_name="Извлеченный текст")
+    keyword_analysis = models.JSONField(default=dict, verbose_name="Анализ ключевых слов")
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлен")
     
@@ -136,4 +146,6 @@ class SEOIssue(models.Model):
     
     def __str__(self):
         return f"{self.get_severity_display()} - {self.title}"
+
+
 

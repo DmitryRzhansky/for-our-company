@@ -167,6 +167,94 @@
             </div>
         </div>
 
+        <!-- Простые метрики -->
+        <div class="card stats-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart"></i> Простые метрики
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-3">
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body">
+                                <i class="bi bi-file-text display-4 mb-2"></i>
+                                <h4>{{ analysis.word_count }}</h4>
+                                <p class="mb-0">Слов на странице</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body">
+                                <i class="bi bi-tag display-4 mb-2"></i>
+                                <h4>{{ analysis.title_length }}</h4>
+                                <p class="mb-0">Символов в title</p>
+                                {% if analysis.title_length < 50 %}
+                                    <small class="text-warning">Слишком короткий</small>
+                                {% elif analysis.title_length > 60 %}
+                                    <small class="text-warning">Слишком длинный</small>
+                                {% else %}
+                                    <small class="text-success">Оптимальный</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body">
+                                <i class="bi bi-chat-text display-4 mb-2"></i>
+                                <h4>{{ analysis.description_length }}</h4>
+                                <p class="mb-0">Символов в description</p>
+                                {% if analysis.description_length < 150 %}
+                                    <small class="text-warning">Слишком короткий</small>
+                                {% elif analysis.description_length > 160 %}
+                                    <small class="text-warning">Слишком длинный</small>
+                                {% else %}
+                                    <small class="text-success">Оптимальный</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body">
+                                <i class="bi bi-link-45deg display-4 mb-2"></i>
+                                <h4>{{ analysis.total_links }}</h4>
+                                <p class="mb-0">Всего ссылок</p>
+                                <small class="text-muted">{{ analysis.internal_links }} внутр. / {{ analysis.external_links }} внеш.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Анализ ключевых слов -->
+                {% if analysis.keyword_analysis %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6><i class="bi bi-search"></i> Анализ ключевых слов</h6>
+                            {% for keyword, data in analysis.keyword_analysis.items %}
+                                {% if keyword != 'headings' %}
+                                    <div class="row mb-2">
+                                        <div class="col-md-4">
+                                            <strong>{{ keyword }}</strong>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="badge bg-primary">{{ data.count }} раз</span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="badge bg-info">{{ data.density }}% плотность</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Open Graph -->
         {% if analysis.og_title or analysis.og_description or analysis.og_image %}
             <div class="card stats-card mb-4">
@@ -309,6 +397,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Извлеченный текст -->
+        {% if analysis.extracted_text %}
+            <div class="card stats-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text"></i> Извлеченный текст
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+                        <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ analysis.extracted_text }}</pre>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         <!-- Информация об анализе -->
         <div class="card stats-card">

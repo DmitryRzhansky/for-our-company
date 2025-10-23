@@ -14,4 +14,5 @@ urlpatterns = [
     path('export/', views.export_to_excel, name='export_excel'),
     path('analysis/<int:analysis_id>/robots.txt', views.download_robots_txt, name='download_robots'),
     path('analysis/<int:analysis_id>/sitemap.xml', views.download_sitemap_xml, name='download_sitemap'),
+    
 ]
