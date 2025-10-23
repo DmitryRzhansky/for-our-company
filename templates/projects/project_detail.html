@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} - SEO Agency{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="bi bi-folder"></i> {{ project.name }}
+                </h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-building"></i> {{ project.client }}
+                </p>
+            </div>
+            <div>
+                <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge fs-6">
+                    {{ project.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if project.description %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle"></i> Описание
+                    </h5>
+                    <p class="card-text">{{ project.description }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>
+                <i class="bi bi-files"></i> Материалы проекта
+            </h3>
+            <a href="{% url 'projects:project_download_all' project.slug %}" class="btn btn-success">
+                <i class="bi bi-download"></i> Скачать все файлы
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if contents %}
+    <div class="row">
+        {% for content in contents %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">
+                                {% if content.content_type == 'file' %}
+                                    <i class="bi bi-file-earmark"></i>
+                                {% elif content.content_type == 'html' %}
+                                    <i class="bi bi-code-square"></i>
+                                {% elif content.content_type == 'text' %}
+                                    <i class="bi bi-file-text"></i>
+                                {% elif content.content_type == 'link' %}
+                                    <i class="bi bi-link-45deg"></i>
+                                {% elif content.content_type == 'image' %}
+                                    <i class="bi bi-image"></i>
+                                {% endif %}
+                                {{ content.title }}
+                            </h5>
+                            <span class="badge bg-secondary content-type-badge">
+                                {{ content.get_content_type_display }}
+                            </span>
+                        </div>
+                        
+                        {% if content.description %}
+                            <p class="card-text">{{ content.description|truncatechars:100 }}</p>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ content.created_at|date:"d.m.Y H:i" }}
+                            </small>
+                            <div>
+                                {% if content.content_type == 'file' and content.file %}
+                                    <a href="{{ content.file.url }}" class="btn btn-sm btn-outline-primary" download>
+                                        <i class="bi bi-download"></i> Скачать
+                                    </a>
+                                {% elif content.content_type == 'html' %}
+                                    <a href="{% url 'projects:content_view' project.slug content.id %}" class="btn btn-sm btn-outline-info" target="_blank">
+                                        <i class="bi bi-eye"></i> Открыть
+                                    </a>
+                                {% elif content.content_type == 'text' %}
+                                    <a href="{% url 'projects:content_view' project.slug content.id %}" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i> Читать
+                                    </a>
+                                {% elif content.content_type == 'link' and content.external_url %}
+                                    <a href="{{ content.external_url }}" class="btn btn-sm btn-outline-success" target="_blank">
+                                        <i class="bi bi-box-arrow-up-right"></i> Перейти
+                                    </a>
+                                {% elif content.content_type == 'image' and content.image %}
+                                    <a href="{{ content.image.url }}" class="btn btn-sm btn-outline-info" target="_blank">
+                                        <i class="bi bi-eye"></i> Просмотр
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-folder-x display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Нет материалов</h3>
+        <p class="text-muted">Добавьте материалы через админку</p>
+        <a href="/admin/projects/projectcontent/add/" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Добавить материал
+        </a>
+    </div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-info-circle"></i> Информация о проекте
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <strong>Создан:</strong> {{ project.created_at|date:"d.m.Y H:i" }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Обновлен:</strong> {{ project.updated_at|date:"d.m.Y H:i" }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <strong>Статус:</strong> {{ project.get_status_display }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>URL:</strong> 
+                            <a href="{{ request.build_absolute_uri }}" class="text-decoration-none">
+                                {{ request.build_absolute_uri }}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

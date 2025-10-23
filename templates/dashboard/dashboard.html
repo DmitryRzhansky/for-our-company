@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - SEO Agency{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Дашборд
+            <small class="text-muted">{{ today|date:"d.m.Y" }}</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-folder display-4 mb-2"></i>
+                <h3>{{ projects_stats.total }}</h3>
+                <p class="mb-0">Всего проектов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-clock-history display-4 mb-2"></i>
+                <h3>{{ reports_stats.total_reports }}</h3>
+                <p class="mb-0">Отчетов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-hourglass-split display-4 mb-2"></i>
+                <h3>{{ reports_stats.today_time|default:"0:00" }}</h3>
+                <p class="mb-0">Сегодня</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-week display-4 mb-2"></i>
+                <h3>{{ reports_stats.week_time|default:"0:00" }}</h3>
+                <p class="mb-0">За неделю</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Последние проекты -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-folder"></i> Последние проекты
+                </h5>
+                <a href="{% url 'projects:project_list' %}" class="btn btn-sm btn-outline-primary">
+                    Все проекты
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_projects %}
+                    {% for project in recent_projects %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{{ project.get_absolute_url }}" class="text-decoration-none">
+                                        {{ project.name }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">{{ project.client }}</small>
+                            </div>
+                            <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge">
+                                {{ project.get_status_display }}
+                            </span>
+                        </div>
+                        {% if not forloop.last %}<hr class="my-2">{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">Нет проектов</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Отчеты за сегодня -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock"></i> Отчеты за сегодня
+                </h5>
+                <a href="{% url 'reports:report_list' %}" class="btn btn-sm btn-outline-primary">
+                    Все отчеты
+                </a>
+            </div>
+            <div class="card-body">
+                {% if today_reports %}
+                    {% for report in today_reports %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-1">{{ report.project_name }}</h6>
+                                <small class="text-muted">{{ report.work_description|truncatechars:50 }}</small>
+                            </div>
+                            <span class="badge time-badge">
+                                {{ report.time_spent_hours }}
+                            </span>
+                        </div>
+                        {% if not forloop.last %}<hr class="my-2">{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">Нет отчетов за сегодня</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="/admin/projects/project/add/" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-plus-circle"></i> Новый проект
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/admin/reports/workreport/add/" class="btn btn-success w-100 mb-2">
+                            <i class="bi bi-clock"></i> Новый отчет
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'reports:report_list' %}?date=today" class="btn btn-info w-100 mb-2">
+                            <i class="bi bi-calendar-day"></i> Отчеты за сегодня
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'reports:export_reports' %}" class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-download"></i> Экспорт Excel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

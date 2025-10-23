@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Проекты - SEO Agency{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-folder"></i> Проекты
+            </h1>
+            <a href="/admin/projects/project/add/" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Новый проект
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if projects %}
+    <div class="row">
+        {% for project in projects %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">
+                            <a href="{% url 'projects:project_detail' project.slug %}" class="text-decoration-none">
+                                {{ project.name }}
+                            </a>
+                            </h5>
+                            <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge">
+                                {{ project.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-building"></i> {{ project.client }}
+                        </p>
+                        {% if project.description %}
+                            <p class="card-text">{{ project.description|truncatechars:100 }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ project.created_at|date:"d.m.Y" }}
+                            </small>
+                            <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Открыть
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">Первая</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Следующая</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-folder-x display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Нет проектов</h3>
+        <p class="text-muted">Создайте первый проект через админку</p>
+        <a href="/admin/projects/project/add/" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать проект
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

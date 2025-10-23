@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Отчеты - SEO Agency{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-clock-history"></i> Отчеты о работе
+            </h1>
+            <div>
+                <a href="/admin/reports/workreport/add/" class="btn btn-success me-2">
+                    <i class="bi bi-plus-circle"></i> Новый отчет
+                </a>
+                <a href="{% url 'reports:export_reports' %}" class="btn btn-warning">
+                    <i class="bi bi-download"></i> Экспорт Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-day display-4 mb-2"></i>
+                <h4>{{ stats.today_time|default:"0:00" }}</h4>
+                <p class="mb-0">Сегодня</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-week display-4 mb-2"></i>
+                <h4>{{ stats.week_time|default:"0:00" }}</h4>
+                <p class="mb-0">За неделю</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-month display-4 mb-2"></i>
+                <h4>{{ stats.month_time|default:"0:00" }}</h4>
+                <p class="mb-0">За месяц</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-check display-4 mb-2"></i>
+                <h4>{{ stats.total_reports }}</h4>
+                <p class="mb-0">Всего отчетов</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="date" class="form-label">Период</label>
+                        <select name="date" id="date" class="form-select">
+                            <option value="">Все время</option>
+                            <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Сегодня</option>
+                            <option value="week" {% if request.GET.date == 'week' %}selected{% endif %}>За неделю</option>
+                            <option value="month" {% if request.GET.date == 'month' %}selected{% endif %}>За месяц</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="project" class="form-label">Проект</label>
+                        <input type="text" name="project" id="project" class="form-control" 
+                               placeholder="Поиск по названию проекта" value="{{ request.GET.project }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Фильтровать
+                            </button>
+                            <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Сбросить
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список отчетов -->
+{% if reports %}
+    <div class="row">
+        {% for report in reports %}
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title">
+                                    <i class="bi bi-folder"></i> {{ report.project_name }}
+                                </h5>
+                                {% if report.project_url %}
+                                    <p class="text-muted mb-2">
+                                        <i class="bi bi-link-45deg"></i> 
+                                        <a href="{{ report.project_url }}" target="_blank" class="text-decoration-none">
+                                            {{ report.project_url|truncatechars:50 }}
+                                        </a>
+                                    </p>
+                                {% endif %}
+                                <p class="card-text">{{ report.work_description }}</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="mb-2">
+                                    <span class="badge time-badge fs-6">
+                                        <i class="bi bi-clock"></i> {{ report.time_spent_hours }}
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-calendar"></i> {{ report.date|date:"d.m.Y" }}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> {{ report.created_at|date:"H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Первая</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Предыдущая</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Следующая</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">Последняя</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-clock-history display-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Нет отчетов</h3>
+        <p class="text-muted">Добавьте первый отчет через админку</p>
+        <a href="/admin/reports/workreport/add/" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Добавить отчет
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
