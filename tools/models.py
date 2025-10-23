@@ -149,4 +149,20 @@ class SEOIssue(models.Model):
         return f"{self.get_severity_display()} - {self.title}"
 
 
+class TranslitResult(models.Model):
+    """Результат транслитерации"""
+    original_text = models.TextField(verbose_name="Исходный текст")
+    translit_text = models.TextField(verbose_name="Транслит текст")
+    is_url = models.BooleanField(default=False, verbose_name="Это URL")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
+    
+    class Meta:
+        verbose_name = "Результат транслита"
+        verbose_name_plural = "Результаты транслита"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Транслит: {self.original_text[:50]}..."
+
+
 

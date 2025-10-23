@@ -9,8 +9,9 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from io import BytesIO
 from datetime import datetime
-from .models import Website, BasicAnalysis, SEOIssue
+from .models import Website, BasicAnalysis, SEOIssue, TranslitResult
 from .seo_parser import SEOParser
+from .translit_parser import TranslitParser
 
 
 class WebsiteListView(ListView):
@@ -121,6 +122,14 @@ class BasicAnalysisListView(ListView):
             'total_websites': Website.objects.count(),
             'competitors': Website.objects.filter(is_competitor=True).count(),
         }
+        
+        # Добавляем результаты транслита из сессии
+        context['translit_results'] = self.request.session.get('translit_results')
+        
+        # Очищаем результаты транслита если запрошено
+        if self.request.GET.get('clear_translit'):
+            if 'translit_results' in self.request.session:
+                del self.request.session['translit_results']
         
         return context
 
@@ -335,6 +344,82 @@ def download_sitemap_xml(request, analysis_id):
     response['Content-Disposition'] = f'attachment; filename="sitemap_{analysis.website.name}.xml"'
     
     return response
+
+
+# ===== ТРАНСЛИТ =====
+
+class TranslitListView(ListView):
+    """Список результатов транслита"""
+    model = TranslitResult
+    template_name = 'tools/translit_list.html'
+    context_object_name = 'results'
+    paginate_by = 12
+    
+    def get_queryset(self):
+        queryset = TranslitResult.objects.all()
+        
+        # Поиск
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(original_text__icontains=search) |
+                Q(translit_text__icontains=search)
+            )
+        
+        # Фильтр по типу
+        is_url = self.request.GET.get('is_url')
+        if is_url == 'true':
+            queryset = queryset.filter(is_url=True)
+        elif is_url == 'false':
+            queryset = queryset.filter(is_url=False)
+        
+        return queryset.order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['stats'] = {
+            'total_results': TranslitResult.objects.count(),
+            'url_results': TranslitResult.objects.filter(is_url=True).count(),
+            'text_results': TranslitResult.objects.filter(is_url=False).count(),
+        }
+        return context
+
+
+def translit_form(request):
+    """Форма транслитерации"""
+    if request.method == 'POST':
+        text = request.POST.get('text', '').strip()
+        is_url = request.POST.get('is_url') == 'on'
+        
+        if not text:
+            messages.error(request, 'Введите текст для транслитерации')
+            return redirect('tools:analysis_list')
+        
+        try:
+            parser = TranslitParser()
+            results = parser.process_multiple_lines(text, is_url)
+            
+            # Объединяем все результаты в один список
+            all_translits = []
+            for result in results:
+                all_translits.append(result['translit'])
+            
+            # Сохраняем результаты в сессии для отображения
+            request.session['translit_results'] = {
+                'original_text': text,
+                'translit_list': all_translits,
+                'is_url': is_url,
+                'count': len(all_translits)
+            }
+            
+            messages.success(request, f'Транслитерация завершена! Обработано {len(results)} строк.')
+            return redirect('tools:analysis_list')
+            
+        except Exception as e:
+            messages.error(request, f'Ошибка при транслитерации: {str(e)}')
+            return redirect('tools:analysis_list')
+    
+    return redirect('tools:analysis_list')
 
 
 

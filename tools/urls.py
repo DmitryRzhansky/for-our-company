@@ -15,4 +15,7 @@ urlpatterns = [
     path('analysis/<int:analysis_id>/robots.txt', views.download_robots_txt, name='download_robots'),
     path('analysis/<int:analysis_id>/sitemap.xml', views.download_sitemap_xml, name='download_sitemap'),
     
+    # Транслит
+    path('translit/', views.TranslitListView.as_view(), name='translit_list'),
+    path('translit/process/', views.translit_form, name='translit_form'),
 ]

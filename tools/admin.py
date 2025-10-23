@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Website, BasicAnalysis, SEOIssue
+from .models import Website, BasicAnalysis, SEOIssue, TranslitResult
 
 
 @admin.register(Website)
@@ -59,4 +59,20 @@ class SEOIssueAdmin(admin.ModelAdmin):
     list_filter = ['category', 'severity', 'created_at']
     search_fields = ['title', 'description', 'recommendation']
     ordering = ['-severity', 'category']
+
+
+@admin.register(TranslitResult)
+class TranslitResultAdmin(admin.ModelAdmin):
+    list_display = ['original_text_short', 'translit_text_short', 'is_url', 'created_at']
+    list_filter = ['is_url', 'created_at']
+    search_fields = ['original_text', 'translit_text']
+    readonly_fields = ['created_at']
+    
+    def original_text_short(self, obj):
+        return obj.original_text[:50] + '...' if len(obj.original_text) > 50 else obj.original_text
+    original_text_short.short_description = 'Исходный текст'
+    
+    def translit_text_short(self, obj):
+        return obj.translit_text[:50] + '...' if len(obj.translit_text) > 50 else obj.translit_text
+    translit_text_short.short_description = 'Транслит'
 
