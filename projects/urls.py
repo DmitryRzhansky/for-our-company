@@ -8,4 +8,5 @@ urlpatterns = [
     path('<slug:slug>/', views.ProjectDetailView.as_view(), name='project_detail'),
     path('<slug:slug>/download/', views.project_download_all, name='project_download_all'),
     path('<slug:slug>/content/<int:content_id>/', views.content_view, name='content_view'),
+    path('<slug:slug>/content/<int:content_id>/download/', views.content_download, name='content_download'),
 ]

@@ -2,23 +2,23 @@ from django.contrib import admin
 from .models import Project, ProjectContent
 
 
-class ProjectContentInline(admin.TabularInline):
+class ProjectContentInline(admin.StackedInline):
     model = ProjectContent
     extra = 1
-    fields = ('title', 'content_type', 'description', 'order')
+    fields = ('title', 'content_type', 'description', 'file', 'html_content', 'text_content', 'external_url', 'image', 'order')
 
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'client', 'status', 'created_at')
+    list_display = ('name', 'project_url', 'status', 'created_at')
     list_filter = ('status', 'created_at')
-    search_fields = ('name', 'client')
+    search_fields = ('name', 'project_url')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ProjectContentInline]
     
     fieldsets = (
         ('Основная информация', {
-            'fields': ('name', 'client', 'description', 'status')
+            'fields': ('name', 'project_url', 'description', 'status')
         }),
         ('URL', {
             'fields': ('slug',),
@@ -37,8 +37,24 @@ class ProjectContentAdmin(admin.ModelAdmin):
         ('Основная информация', {
             'fields': ('project', 'title', 'content_type', 'description', 'order')
         }),
-        ('Контент', {
-            'fields': ('file', 'html_content', 'text_content', 'external_url', 'image'),
+        ('Файл', {
+            'fields': ('file',),
+            'classes': ('collapse',)
+        }),
+        ('HTML контент', {
+            'fields': ('html_content',),
+            'classes': ('collapse',)
+        }),
+        ('Текстовый контент', {
+            'fields': ('text_content',),
+            'classes': ('collapse',)
+        }),
+        ('Внешняя ссылка', {
+            'fields': ('external_url',),
+            'classes': ('collapse',)
+        }),
+        ('Изображение', {
+            'fields': ('image',),
             'classes': ('collapse',)
         }),
     )

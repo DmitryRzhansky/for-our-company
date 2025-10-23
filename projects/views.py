@@ -1,9 +1,8 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, FileResponse
 from django.views.generic import ListView, DetailView
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
-from django.http import FileResponse
 import os
 import zipfile
 from django.conf import settings
@@ -84,3 +83,18 @@ def content_view(request, slug, content_id):
         })
     else:
         raise Http404("Контент не найден")
+
+
+def content_download(request, slug, content_id):
+    """Скачать отдельный файл"""
+    project = get_object_or_404(Project, slug=slug)
+    content = get_object_or_404(ProjectContent, id=content_id, project=project)
+    
+    if content.content_type == 'file' and content.file:
+        file_path = content.file.path
+        if os.path.exists(file_path):
+            response = FileResponse(open(file_path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{content.title}.{content.file.name.split(".")[-1]}"'
+            return response
+    
+    raise Http404("Файл не найден")

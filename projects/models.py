@@ -11,7 +11,7 @@ class Project(models.Model):
     ]
     
     name = models.CharField(max_length=200, verbose_name='Название проекта')
-    client = models.CharField(max_length=200, verbose_name='Клиент')
+    project_url = models.URLField(blank=True, verbose_name='URL проекта')
     description = models.TextField(blank=True, verbose_name='Описание')
     status = models.CharField(
         choices=STATUS_CHOICES, 
@@ -30,14 +30,14 @@ class Project(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(f"{self.client}-{self.name}")
+            self.slug = slugify(self.name)
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         return reverse('projects:project_detail', kwargs={'slug': self.slug})
     
     def __str__(self):
-        return f"{self.client} - {self.name}"
+        return self.name
 
 
 class ProjectContent(models.Model):

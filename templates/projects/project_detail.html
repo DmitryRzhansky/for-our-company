@@ -10,9 +10,14 @@
                 <h1>
                     <i class="bi bi-folder"></i> {{ project.name }}
                 </h1>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-building"></i> {{ project.client }}
-                </p>
+                {% if project.project_url %}
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-link-45deg"></i> 
+                        <a href="{{ project.project_url }}" target="_blank" class="text-decoration-none">
+                            {{ project.project_url }}
+                        </a>
+                    </p>
+                {% endif %}
             </div>
             <div>
                 <span class="badge bg-{% if project.status == 'in_progress' %}warning{% elif project.status == 'ready' %}success{% else %}secondary{% endif %} status-badge fs-6">
@@ -87,7 +92,7 @@
                             </small>
                             <div>
                                 {% if content.content_type == 'file' and content.file %}
-                                    <a href="{{ content.file.url }}" class="btn btn-sm btn-outline-primary" download>
+                                    <a href="{% url 'projects:content_download' project.slug content.id %}" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-download"></i> Скачать
                                     </a>
                                 {% elif content.content_type == 'html' %}

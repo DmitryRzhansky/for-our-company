@@ -32,9 +32,14 @@
                                 {{ project.get_status_display }}
                             </span>
                         </div>
-                        <p class="text-muted mb-2">
-                            <i class="bi bi-building"></i> {{ project.client }}
-                        </p>
+                        {% if project.project_url %}
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-link-45deg"></i> 
+                                <a href="{{ project.project_url }}" target="_blank" class="text-decoration-none">
+                                    {{ project.project_url|truncatechars:30 }}
+                                </a>
+                            </p>
+                        {% endif %}
                         {% if project.description %}
                             <p class="card-text">{{ project.description|truncatechars:100 }}</p>
                         {% endif %}
