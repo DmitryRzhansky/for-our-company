@@ -19,5 +19,6 @@ urlpatterns = [
     path('translit/', views.TranslitListView.as_view(), name='translit_list'),
     path('translit/process/', views.translit_form, name='translit_form'),
     
-    # Синонимы
+    # Диагностика сайтов
+    path('diagnostics/process/', views.diagnostics_form, name='diagnostics_form'),
 ]

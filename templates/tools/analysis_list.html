@@ -109,6 +109,54 @@
             </div>
         </div>
         
+        <!-- Диагностика сайта -->
+        <div class="card stats-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <button class="btn btn-link text-decoration-none p-0 w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#diagnosticsForm" aria-expanded="false" aria-controls="diagnosticsForm">
+                        <i class="bi bi-heart-pulse"></i> Диагностика сайта
+                        <i class="bi bi-chevron-down float-end"></i>
+                    </button>
+                </h5>
+            </div>
+            <div class="collapse" id="diagnosticsForm">
+                <div class="card-body">
+                    <form method="POST" action="{% url 'tools:diagnostics_form' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="diagnostics_url" class="form-label" style="color: white !important;">URL сайта</label>
+                                <input type="url" class="form-control" id="diagnostics_url" name="url" placeholder="https://example.com" style="color: white !important;">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-search"></i> Диагностика
+                                </button>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                {% if diagnostics_results %}
+                                <button type="button" class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#diagnosticsModal">
+                                    <i class="bi bi-eye"></i> Результаты
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div style="color: white !important;">
+                                    <i class="bi bi-info-circle"></i> 
+                                    <strong>Функционал:</strong> Ping, HTTP статус, редиректы, SSL сертификат, DNS записи, WHOIS
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+        
         
         <!-- Результаты транслита -->
         {% if translit_results %}
@@ -323,6 +371,197 @@
         </div>
     </div>
 {% endif %}
+
+<!-- Модальное окно для результатов диагностики -->
+{% if diagnostics_results %}
+<div class="modal fade" id="diagnosticsModal" tabindex="-1" aria-labelledby="diagnosticsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="background-color: #000; border: 2px solid #333; border-radius: 0;">
+            <div class="modal-header" style="border-bottom: 1px solid #333;">
+                <h5 class="modal-title text-white" id="diagnosticsModalLabel">
+                    <i class="bi bi-heart-pulse"></i> Результаты диагностики: {{ diagnostics_results.url }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="color: white; font-family: monospace;">
+                
+                <!-- Ping результаты -->
+                {% if diagnostics_results.ping %}
+                <div class="mb-4">
+                    <h6 class="text-primary mb-2">🌐 Ping проверка</h6>
+                    {% if diagnostics_results.ping.status == 'success' %}
+                        <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #333; border-radius: 0;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Домен:</strong> {{ diagnostics_results.ping.domain }}<br>
+                                    <strong>Среднее время:</strong> {{ diagnostics_results.ping.avg_time }}ms
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Времена отклика:</strong><br>
+                                    {% for time in diagnostics_results.ping.times %}
+                                        <span class="badge bg-secondary me-1">{{ time }}ms</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #ff6b6b; border-radius: 0;">
+                            <strong class="text-danger">Ошибка:</strong> {{ diagnostics_results.ping.error }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- HTTP статус -->
+                {% if diagnostics_results.http %}
+                <div class="mb-4">
+                    <h6 class="text-primary mb-2">🔗 HTTP статус</h6>
+                    <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #333; border-radius: 0;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Финальный URL:</strong><br>
+                                <code>{{ diagnostics_results.http.final_url }}</code><br><br>
+                                <strong>Статус:</strong> 
+                                <span class="badge {% if diagnostics_results.http.final_status == 200 %}bg-success{% elif diagnostics_results.http.final_status >= 300 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ diagnostics_results.http.final_status }} {{ diagnostics_results.http.final_reason }}
+                                </span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Время ответа:</strong> {{ diagnostics_results.http.response_time|floatformat:2 }}s
+                                {% if diagnostics_results.http.redirects %}
+                                    <br><br><strong>Редиректы:</strong>
+                                    {% for redirect in diagnostics_results.http.redirects %}
+                                        <br><small>{{ redirect.status }}: {{ redirect.from }} → {{ redirect.to }}</small>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- SSL сертификат -->
+                {% if diagnostics_results.ssl %}
+                <div class="mb-4">
+                    <h6 class="text-primary mb-2">🔒 SSL сертификат</h6>
+                    {% if diagnostics_results.ssl.status == 'success' %}
+                        <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #333; border-radius: 0;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Домен:</strong> {{ diagnostics_results.ssl.domain }}<br>
+                                    <strong>Издатель:</strong> {{ diagnostics_results.ssl.issuer|default:"Не указан" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Истекает:</strong> {{ diagnostics_results.ssl.not_after|date:"d.m.Y" }}<br>
+                                    <strong>Дней до истечения:</strong> 
+                                    <span class="badge {% if diagnostics_results.ssl.days_until_expiry > 30 %}bg-success{% elif diagnostics_results.ssl.days_until_expiry > 7 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ diagnostics_results.ssl.days_until_expiry }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #ff6b6b; border-radius: 0;">
+                            <strong class="text-danger">Ошибка:</strong> {{ diagnostics_results.ssl.error }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- DNS записи -->
+                {% if diagnostics_results.dns %}
+                <div class="mb-4">
+                    <h6 class="text-primary mb-2">🌍 DNS записи</h6>
+                    <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #333; border-radius: 0;">
+                        <div class="row">
+                            {% if diagnostics_results.dns.records.A %}
+                            <div class="col-md-6 mb-2">
+                                <strong>A записи (IPv4):</strong><br>
+                                {% for record in diagnostics_results.dns.records.A %}
+                                    <code>{{ record }}</code><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if diagnostics_results.dns.records.AAAA %}
+                            <div class="col-md-6 mb-2">
+                                <strong>AAAA записи (IPv6):</strong><br>
+                                {% for record in diagnostics_results.dns.records.AAAA %}
+                                    <code>{{ record }}</code><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if diagnostics_results.dns.records.MX %}
+                            <div class="col-md-6 mb-2">
+                                <strong>MX записи (Почта):</strong><br>
+                                {% for mx in diagnostics_results.dns.records.MX %}
+                                    <code>{{ mx.priority }} {{ mx.exchange }}</code><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if diagnostics_results.dns.records.NS %}
+                            <div class="col-md-6 mb-2">
+                                <strong>NS записи (Серверы имен):</strong><br>
+                                {% for record in diagnostics_results.dns.records.NS %}
+                                    <code>{{ record }}</code><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- WHOIS информация -->
+                {% if diagnostics_results.whois %}
+                <div class="mb-4">
+                    <h6 class="text-primary mb-2">📋 WHOIS информация</h6>
+                    {% if diagnostics_results.whois.status == 'success' %}
+                        <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #333; border-radius: 0;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if diagnostics_results.whois.info.registrar %}
+                                        <strong>Регистратор:</strong> {{ diagnostics_results.whois.info.registrar }}<br>
+                                    {% endif %}
+                                    {% if diagnostics_results.whois.info.created %}
+                                        <strong>Создан:</strong> {{ diagnostics_results.whois.info.created }}<br>
+                                    {% endif %}
+                                    {% if diagnostics_results.whois.info.status %}
+                                        <strong>Статус:</strong> {{ diagnostics_results.whois.info.status }}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% if diagnostics_results.whois.info.expires %}
+                                        <strong>Истекает:</strong> {{ diagnostics_results.whois.info.expires }}<br>
+                                    {% endif %}
+                                    {% if diagnostics_results.whois.info.age_years %}
+                                        <strong>Возраст домена:</strong> 
+                                        <span class="badge bg-info">
+                                            {{ diagnostics_results.whois.info.age_years }} лет ({{ diagnostics_results.whois.info.age_days }} дней)
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="p-3" style="background-color: #1a1a1a; border: 1px solid #ff6b6b; border-radius: 0;">
+                            <strong class="text-danger">Ошибка:</strong> {{ diagnostics_results.whois.error }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #333;">
+                <button type="button" class="btn btn-outline-light" onclick="clearDiagnosticsResults()">
+                    <i class="bi bi-x-circle"></i> Очистить
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
 {% endblock %}
 
 <script>
@@ -346,6 +585,11 @@ function clearTranslitResults() {
     }).then(() => {
         location.reload();
     });
+}
+
+function clearDiagnosticsResults() {
+    // Простое перенаправление для очистки сессии
+    window.location.href = '{% url "tools:analysis_list" %}?clear_diagnostics=1';
 }
 
 

@@ -12,6 +12,7 @@ from datetime import datetime
 from .models import Website, BasicAnalysis, SEOIssue, TranslitResult
 from .seo_parser import SEOParser
 from .translit_parser import TranslitParser
+from .diagnostics_parser import SiteDiagnostics
 
 
 class WebsiteListView(ListView):
@@ -126,11 +127,19 @@ class BasicAnalysisListView(ListView):
         # Добавляем результаты транслита из сессии
         context['translit_results'] = self.request.session.get('translit_results')
         
+        # Добавляем результаты диагностики из сессии
+        context['diagnostics_results'] = self.request.session.get('diagnostics_results')
+        
         
         # Очищаем результаты транслита если запрошено
         if self.request.GET.get('clear_translit'):
             if 'translit_results' in self.request.session:
                 del self.request.session['translit_results']
+        
+        # Очищаем результаты диагностики если запрошено
+        if self.request.GET.get('clear_diagnostics'):
+            if 'diagnostics_results' in self.request.session:
+                del self.request.session['diagnostics_results']
         
         
         return context
@@ -426,6 +435,30 @@ def translit_form(request):
     return redirect('tools:analysis_list')
 
 
+# ===== ДИАГНОСТИКА САЙТОВ =====
 
-
+def diagnostics_form(request):
+    """Форма диагностики сайта"""
+    if request.method == 'POST':
+        url = request.POST.get('url', '').strip()
+        
+        if not url:
+            messages.error(request, 'Введите URL для диагностики')
+            return redirect('tools:analysis_list')
+        
+        try:
+            diagnostics = SiteDiagnostics()
+            results = diagnostics.run_full_diagnostics(url)
+            
+            # Сохраняем результаты в сессии
+            request.session['diagnostics_results'] = results
+            
+            messages.success(request, f'Диагностика сайта {url} завершена!')
+            return redirect('tools:analysis_list')
+            
+        except Exception as e:
+            messages.error(request, f'Ошибка при диагностике: {str(e)}')
+            return redirect('tools:analysis_list')
+    
+    return redirect('tools:analysis_list')
 
